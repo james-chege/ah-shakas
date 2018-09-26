@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/andela/ah-shakas.svg?branch=master)](https://travis-ci.org/andela/ah-shakas)
+
+
 Authors Haven - A Social platform for the creative at heart.
 =======
 
