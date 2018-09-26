@@ -115,7 +115,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
@@ -139,14 +139,18 @@ CORS_ORIGIN_WHITELIST = (
 # called `INSTALLED_APPS`.
 AUTH_USER_MODEL = 'authentication.User'
 
-REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'authors.apps.core.exceptions.core_exception_handler',
-    'NON_FIELD_ERRORS_KEY': 'error',
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'authors.apps.authentication.backends.JWTAuthentication',
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
 }
+
 
 # Activate django-heroku for Heroku
 django_heroku.settings(locals())
