@@ -10,6 +10,8 @@ from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer
 )
 
+from .token import generate_token
+
 class RegistrationAPIView(CreateAPIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
@@ -24,6 +26,9 @@ class RegistrationAPIView(CreateAPIView):
         # your own work later on. Get familiar with it.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+
+        # send email now to the user for verification
+
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
