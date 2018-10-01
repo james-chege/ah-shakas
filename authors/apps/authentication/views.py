@@ -1,5 +1,5 @@
 from rest_framework import status, generics
-from rest_framework.generics import RetrieveUpdateAPIView,CreateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -47,7 +47,7 @@ class LoginAPIView(CreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserRetrieveUpdateAPIView(generics.RetrieveUpdateDestroyAPIView):
+class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = UserSerializer
