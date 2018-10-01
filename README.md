@@ -7,13 +7,85 @@
 
 Authors Haven - A Social platform for the creative at heart.
 =======
-
+Users can register, login and create articles which other users can comment, like/dislike and rate. A user can also follow other users.
 ## Vision
-Create a community of like minded authors to foster inspiration and innovation
+Create a community of like minded authors to foster inspiration and innovation.
 by leveraging the modern web.
 
 ---
+## How to set up the project.
+### Features.
+- python 3
+- postgreSQL as database engine
 
+### Installation.
+- clone the repository
+```
+$ git clone https://github.com/andela/ah-shakas.git
+```
+- cd into the directory
+```
+$ cd ah-shakas
+```
+- create a virtual environment
+```
+$ python3 -m venv <name of your venv>
+```
+- activate virtual environment
+
+On Unix or MacOS, run:
+```
+$ source <name of your venv>/bin/activate
+```
+On Windows run:
+```
+<name of your venv>/Scripts/activate
+```
+- Install requirements.
+```
+$ pip install -r requirements.txt
+```
+- create environment variables
+On Unix or MacOS, run:
+```
+$ touch .env
+```
+open .env file and enter your corresponding database details as follows
+```
+export DB_NAME=name of your database
+export DB_USER=username you use to access the database
+export DB_PASSWORD=your password
+export DB_HOST=host url of your database e.g localhost
+```
+Note: There is no space next to '='
+
+on terminal,
+```
+$ source .env
+```
+On windows, enter your corresponding database details on terminal as follows
+
+```
+$ set DB_NAME=name of your database
+$ set DB_USER=username you use to access the database
+$ set DB_PASSWORD=your password
+$ set DB_HOST=host url of your database e.g localhost
+```
+Note: There is no space next to '='
+- make migrations
+```
+$ python manage.py makemigrations
+$ python manage.py migrate
+```
+- Run the application
+```
+python manage.py runserver
+```
+- Testing the application
+```
+$ python manage.py test
+```
+---
 ## API Spec
 The preferred JSON object to be returned by the API should be structured as follows:
 
