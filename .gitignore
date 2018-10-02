@@ -97,10 +97,10 @@ db.sqlite3
 # vscode
 .vscode
 
-# vim temporary files
+ # vim temporary files
 .*.swp
 .*.swn
 .*.swo
-
-# vim python config
+ # vim python config
 .ycm_extra_conf.py
+
