@@ -1,4 +1,4 @@
-# import jwt
+import jwt
 #
 # from django.conf import settings
 #
@@ -8,3 +8,6 @@
 
 """Configure JWT Here"""
 
+class JWTAuthentication:
+    def authenticate(self, data):
+        pass
