@@ -23,6 +23,7 @@ wrapt = "==1.10.11"
 pytz = "==2018.5"
 Django = "==2.1.1"
 PyJWT = "==1.6.4"
+django-rest-swagger = "==2.2.0"
 
 [dev-packages]
 
