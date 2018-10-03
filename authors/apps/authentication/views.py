@@ -3,7 +3,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
+from django.template.loader import render_to_string 
 
 
 from .renderers import UserJSONRenderer
@@ -41,11 +41,16 @@ class RegistrationAPIView(CreateAPIView):
 
         # send email to the user for verification
         url = current_domain + "/api/verify/" + str(token)
+        body = render_to_string('verify.html', {
+            'link': url,
+            'name': user_name
+        })
         send_mail(
                     'Verify your email',
-                    'You will need to confirm your email to start using Author heaven - A Social platform for the creative at heart.' + url,
-                    'chegemaimuna@gmail.com',
+                    'Please verify your account.',
+                    'no-reply@authors-heaven.com',
                     [user_email],
+                    html_message = body,
                     fail_silently=False,
                 )
         return_message = {"Message":"Thank you for registering at Authors heaven. To start using authors heaven, go to your email and click the confirmation link which we haves sent to you :D"}

@@ -64,7 +64,7 @@ ROOT_URLCONF = 'authors.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -157,12 +157,13 @@ REST_FRAMEWORK = {
 # DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 #send grid credentials
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'shakas'
-EMAIL_HOST_PASSWORD = 'Shakas123'
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
+
 # app default domain
-DEFAULT_DOMAIN = '127.0.0.1:8000'
+DEFAULT_DOMAIN = 'http://127.0.0.1:8000'
 # DEFAULT_DOMAIN = 'https://www.yoursite.com:port'
