@@ -17,7 +17,7 @@ class AccountVerification(APITestCase):
         Define globals.
         """
         self.client = APIClient()
-        self.registration_url = reverse('authentication:sign-up')
+        self.registration_url = reverse('authentication:user-registration')
         self.user_data = {
             "user": {
                 "username": "shaka",
