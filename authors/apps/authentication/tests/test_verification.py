@@ -1,4 +1,4 @@
-from django.test import TestCase
+from rest_framework.test import APITestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from authors.apps.authentication.models import User
@@ -7,7 +7,7 @@ from django.urls import reverse
 from authors.apps.authentication.token import generate_token
 
 
-class AccountVerification(TestCase):
+class AccountVerification(APITestCase):
     """
     Test for account verification
     """
