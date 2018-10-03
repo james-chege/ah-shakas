@@ -31,6 +31,14 @@ class AuthenticationTest(APITestCase):
         response = self.client.post(self.url, self.user, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn(b'jane@doe.com', response.content)
+
+    def test_token_generation(self):
+        """
+        Test API can generate token upon successful registration
+        """
+        response = self.client.post(self.url, self.user, format='json')
+        self.assertEqual(response.status_code,status.HTTP_201_CREATED)
+        self.assertIn(b'token', response.content)    
     
     def test_user_cannot_signup_without_email(self):
         """
