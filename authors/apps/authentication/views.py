@@ -50,7 +50,6 @@ class RegistrationAPIView(CreateAPIView):
                 )
         return_message = {"Message":"Thank you for registering at Authors heaven. To start using authors heaven, go to your email and click the confirmation link which we haves sent to you :D"}
         serializer.save()
-
         return Response(return_message, status=status.HTTP_201_CREATED)
 
 class LoginAPIView(CreateAPIView):

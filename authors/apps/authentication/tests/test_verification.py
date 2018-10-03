@@ -19,10 +19,10 @@ class AccountVerification(APITestCase):
         self.client = APIClient()
         self.registration_url = reverse('authentication:user-registration')
         self.user_data = {
-            "user": {
-                "username": "shaka",
-                "email": "shaka@domain.com",
-                "password": "0@secure"
+            'user' : { 
+                'username': 'janeDoe', 
+                'email': 'jane@doe.com', 
+                'password': 'janedoe123', 
             }
         }
 
