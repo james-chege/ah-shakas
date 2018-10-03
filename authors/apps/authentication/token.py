@@ -7,7 +7,7 @@ from django.conf import settings
 
 def generate_token(username):
         """
-        This method generates and decodes jwt token.
+        This method generates and return it as a string.
         """
         date = datetime.now() + timedelta(hours=24)
 
