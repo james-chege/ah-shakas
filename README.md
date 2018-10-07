@@ -17,6 +17,7 @@ by leveraging the modern web.
 ### Features.
 - python 3
 - postgreSQL as database engine
+- pipenv
 
 ### Installation.
 - clone the repository
@@ -27,23 +28,14 @@ $ git clone https://github.com/andela/ah-shakas.git
 ```
 $ cd ah-shakas
 ```
-- create a virtual environment
+- Run pipenv
 ```
-$ python3 -m venv <name of your venv>
+$ pipenv install
 ```
-- activate virtual environment
+- After dependencies are installed, run the virtual environment
 
-On Unix or MacOS, run:
 ```
-$ source <name of your venv>/bin/activate
-```
-On Windows run:
-```
-<name of your venv>/Scripts/activate
-```
-- Install requirements.
-```
-$ pip install -r requirements.txt
+$ pipenv shell
 ```
 - create environment variables
 On Unix or MacOS, run:
