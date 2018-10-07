@@ -35,7 +35,7 @@ class AccountVerification(APITestCase):
 
         self.client.post(self.registration_url, self.user_data, format='json')
         self.assertEqual(len(mail.outbox), 1)
-        self.assertIn("You will need to confirm your email to start using Author heaven", mail.outbox[0].body)
+        self.assertIn("Please verify your account", mail.outbox[0].body)
 
     def test_account_verification(self):
         """
