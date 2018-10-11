@@ -125,7 +125,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         date = datetime.now() + timedelta(hours=24)
 
         payload = {
-            'username': self.username,
+            'email': self.email,
             'exp': int(date.strftime('%s'))
         }
 
