@@ -15,18 +15,20 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Profile',
+            name='ArticlesModel',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('slug', models.SlugField(blank=True, max_length=128, unique=True)),
+                ('title', models.CharField(max_length=128)),
+                ('description', models.CharField(max_length=120)),
+                ('body', models.TextField()),
+                ('image_url', models.URLField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('bio', models.TextField(default='Update your bio', max_length=255)),
-                ('image_url', models.URLField(default='image-url', max_length=250, null=True)),
-                ('following', models.BooleanField(default=False)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='article', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'abstract': False,
+                'ordering': ['-created_at'],
             },
         ),
     ]
