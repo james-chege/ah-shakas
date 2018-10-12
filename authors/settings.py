@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'authors.apps.core',
     'authors.apps.profiles',
     'rest_framework_swagger',
+    'authors.apps.articles',
 ]
 
 MIDDLEWARE = [
