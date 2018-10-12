@@ -165,5 +165,4 @@ EMAIL_USE_TLS = True
 
 
 # app default domain
-DEFAULT_DOMAIN = 'http://127.0.0.1:8000'
-# DEFAULT_DOMAIN = 'https://www.yoursite.com:port'
+DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
