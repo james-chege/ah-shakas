@@ -126,6 +126,9 @@ class CommentsTests(BaseTest):
         Test user cannot comment on an unavailable article
         """
         self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        self.client.credentials(HTTP_AUTHORIZATION=token)
         url = '/api/articles/slug/comments/'
         response = self.client.post(url, self.comment, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -154,6 +157,9 @@ class CommentsTests(BaseTest):
         Test user cannot delete comment on an unavailable article
         """
         self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        self.client.credentials(HTTP_AUTHORIZATION=token)
         url = '/api/articles/slug/comments/1/'
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -173,6 +179,9 @@ class CommentsTests(BaseTest):
         Test user cannot update comment on an unavailable article
         """
         self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        self.client.credentials(HTTP_AUTHORIZATION=token)
         url = API_Reverse('articles:comment-details', {'slug': 'slug', 1: 'id'})
         response = self.client.put(url, data={'comment': {'body': 'New comment'}}, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

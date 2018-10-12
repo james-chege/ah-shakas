@@ -11,7 +11,8 @@ class BaseTest(APITestCase):
 
     def setUp(self):
         self.url = API_Reverse('articles:articles')
-        
+        self.client = APIClient()
+        self.unauthorised_client = APIClient()
         self.signup_url = API_Reverse('authentication:user-registration')    
         self.login_url = API_Reverse('authentication:login')    
         
@@ -39,6 +40,12 @@ class BaseTest(APITestCase):
             }
         }
 
+        self.comment = {
+            "comment": {
+                "body": "This is a test comment body."
+            }
+        }
+
     def create_user(self):
         response = self.client.post(self.signup_url, self.user, format='json')
         return response
@@ -59,6 +66,7 @@ class BaseTest(APITestCase):
         self.activate_user()
         token = self.login_user()
         response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
+        self.client.credentials(HTTP_AUTHORIZATION=token)
         slug = response.data['slug']
 
         return slug
