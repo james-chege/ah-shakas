@@ -1,6 +1,10 @@
 from rest_framework.test import APITestCase
 from rest_framework.reverse import reverse as API_Reverse
+from django.core import mail
+from django.urls import reverse
 
+from authors.apps.authentication.models import User
+from authors.apps.authentication.token import generate_token
 
 class ArticlesBaseTest(APITestCase):
     """This class provides a base for other tests"""
@@ -9,6 +13,7 @@ class ArticlesBaseTest(APITestCase):
         self.url = API_Reverse('articles:articles')
         
         self.signup_url = API_Reverse('authentication:user-registration')    
+        self.login_url = API_Reverse('authentication:login')    
         
         self.user = {
             "user": {
@@ -28,12 +33,23 @@ class ArticlesBaseTest(APITestCase):
 
     def create_user(self):
         response = self.client.post(self.signup_url, self.user, format='json')
+        return response
+    def activate_user(self):
+        """Activate user after login"""
+        self.client.post(self.signup_url, self.user, format='json')
+        user = self.user['user']
+        token = generate_token(user['username'])
+        self.client.get(reverse("authentication:verify", args=[token]))
+    def login_user(self):
+        """This will login an existing user"""
+        response = self.client.post(self.login_url, self.user, format='json')
         token = response.data['token']
-
         return token
 
     def create_article(self):
-        token = self.create_user()
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
         response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
         slug = response.data['slug']
 

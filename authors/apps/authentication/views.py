@@ -54,7 +54,7 @@ class RegistrationAPIView(CreateAPIView):
             fail_silently=False,
         )
         content = "Thank you for registering at Authors heaven."\
-        "To start using authors heaven, go to your email and click the confirmation"\
+        "To start using authors heaven, go to your email and click the confirmation "\
         "link which we haves sent to you :D"
         return_message = {"Message": content}
         serializer.save()

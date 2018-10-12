@@ -14,14 +14,18 @@ class ArticleTests(ArticlesBaseTest):
 
     def test_logged_in_user_view_articles(self):
         """This method tests if a logged in user can access articles"""
-        token = self.create_user()
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
         response = self.client.get(
             self.url, format='json', headers={'Authorization': token})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_user_can_create_article(self):
         """This method tests if a user can create an article"""
-        token = self.create_user()
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
         response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
     
@@ -39,13 +43,17 @@ class ArticleTests(ArticlesBaseTest):
     def test_user_cannot_create_without_title(self):
         """This method tests if a user can post without a title"""
         self.article['article'].pop('title')
-        token = self.create_user()
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
         response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_user_can_update(self):
         """This method checks if a user can update an existing articles"""
-        token = self.create_user()
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
         response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
         slug = response.data['slug']
         url = API_Reverse('articles:article-details', {slug: 'slug'})
@@ -61,7 +69,9 @@ class ArticleTests(ArticlesBaseTest):
 
     def test_user_can_delete(self):
         """This method tests if a user can delete articles"""
-        token = self.create_user()
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
         response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
         slug = response.data['slug']
         url = API_Reverse('articles:article-details', {slug: 'slug'})
