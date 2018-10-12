@@ -46,14 +46,17 @@ class RegistrationAPIView(CreateAPIView):
             'name': user_name
         })
         send_mail(
-                    'Verify your email',
-                    'Please verify your account.',
-                    'no-reply@authors-heaven.com',
-                    [user_email],
-                    html_message = body,
-                    fail_silently=False,
-                )
-        return_message = {"Message":"Thank you for registering at Authors heaven. To start using authors heaven, go to your email and click the confirmation link which we haves sent to you :D"}
+            'Verify your email',
+            'Please verify your account.',
+            'no-reply@authors-heaven.com',
+            [user_email],
+            html_message = body,
+            fail_silently=False,
+        )
+        content = "Thank you for registering at Authors heaven."\
+        "To start using authors heaven, go to your email and click the confirmation"\
+        "link which we haves sent to you :D"
+        return_message = {"Message": content}
         serializer.save()
         return Response(return_message, status=status.HTTP_201_CREATED)
 
