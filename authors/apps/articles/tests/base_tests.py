@@ -1,4 +1,4 @@
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from rest_framework.reverse import reverse as API_Reverse
 from django.core import mail
 from django.urls import reverse
@@ -6,7 +6,7 @@ from django.urls import reverse
 from authors.apps.authentication.models import User
 from authors.apps.authentication.token import generate_token
 
-class ArticlesBaseTest(APITestCase):
+class BaseTest(APITestCase):
     """This class provides a base for other tests"""
 
     def setUp(self):
@@ -20,6 +20,14 @@ class ArticlesBaseTest(APITestCase):
                 "username": "test_user",
                 "password": "testing123",
                 "email": "test@test.com"
+            }
+        }
+
+        self.user2 = {
+            "user": {
+                "username": "test_user2",
+                "password": "testing123",
+                "email": "test2@test.com"
             }
         }
 

@@ -41,4 +41,3 @@ class JWTAuthentication(authentication.BaseAuthentication):
             raise AuthenticationFailed('This user is deactivated')
 
         return (user, token)
-
