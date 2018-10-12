@@ -23,6 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(('authors.apps.articles.urls', 'articles'), namespace='articles')),
     path('api/', include(('authors.apps.authentication.urls', 'authentication'), namespace='authentication')),
-    path(r'', schema_view),
     path('api/', include(('authors.apps.profiles.urls', 'profiles'), namespace='profiles')),
+    path(r'', schema_view),  
 ]

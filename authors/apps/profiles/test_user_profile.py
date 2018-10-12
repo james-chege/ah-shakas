@@ -114,7 +114,7 @@ class ProfileTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(b'This field may not be blank', response.content)
 
-    def test_update_profile_spaces_only_in__bio(self):
+    def test_update_profile_spaces_only_in_bio(self):
         token = self.registration()
         self.client.post(self.url_register, self.user, format='json')
         response = self.client.put(self.url_profile,
