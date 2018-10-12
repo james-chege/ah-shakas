@@ -6,6 +6,8 @@ from .models import Profile
 
 
 from authors.apps.authentication.models import UserManager
+from authors.apps.authentication.token import generate_token
+
 
 
 class ProfileTest(APITestCase):
@@ -24,30 +26,42 @@ class ProfileTest(APITestCase):
             }
         }
 
+        self.login_url = reverse('authentication:login')
         self.url_register = reverse('authentication:user-registration')
         self.url_profile = reverse('profiles:user-profile', kwargs={"username": self.user['user']['username']})
-    
+
     def registration(self):
         response = self.client.post(self.url_register, self.user, format='json')
-        token=response.data['token']
+        return response
+    def activate_user(self):
+        """Activate user after login"""
+        self.client.post(self.url_register, self.user, format='json')
+        user = self.user['user']
+        token = generate_token(user['username'])
+        self.client.get(reverse("authentication:verify", args=[token]))
+    def login_user(self):
+        """This will login an existing user"""
+        response = self.client.post(self.login_url, self.user, format='json')
+        token = response.data['token']
         return token
     
-    
 
-    # def test_model_can_create_user_profile(self):
-    #     """
-    #     Test API can successfully register a new user
-    #     """
-    #     old_count = Profile.objects.count()
-    #     response = self.client.post(self.url_register, self.user, format='json')
-    #     new_count = Profile.objects.count()
-    #     self.assertNotEqual(old_count, new_count)
+    def test_model_can_create_user_profile(self):
+        """
+        Test API can successfully register a new user
+        """
+        old_count = Profile.objects.count()
+        response = self.client.post(self.url_register, self.user, format='json')
+        new_count = Profile.objects.count()
+        self.assertNotEqual(old_count, new_count)
 
-    # def test_get_user_profile(self):
-    #     token = self.registration()
-    #     self.client.post(self.url_register, self.user, format='json')
-    #     response = self.client.get(self.url_profile, format='json', HTTP_AUTHORIZATION=token)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_get_user_profile(self):
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        self.client.post(self.url_register, self.user, format='json')
+        response = self.client.get(self.url_profile, format='json', HTTP_AUTHORIZATION=token)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
     
     # def test_update_user_profile(self):
     #     token = self.registration()
