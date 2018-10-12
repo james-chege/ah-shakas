@@ -1,8 +1,7 @@
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from rest_framework.reverse import reverse as API_Reverse
 
-
-class ArticlesBaseTest(APITestCase):
+class BaseTest(APITestCase):
     """This class provides a base for other tests"""
 
     def setUp(self):
@@ -18,6 +17,14 @@ class ArticlesBaseTest(APITestCase):
             }
         }
 
+        self.user2 = {
+            "user": {
+                "username": "test_user2",
+                "password": "testing123",
+                "email": "test2@test.com"
+            }
+        }
+
         self.article = {
             "article": {
                 "title": "test article",
@@ -26,10 +33,22 @@ class ArticlesBaseTest(APITestCase):
             }
         }
 
-    def create_user(self):
-        response = self.client.post(self.signup_url, self.user, format='json')
-        token = response.data['token']
+        self.comment = {
+            "comment": {
+                "body": "This is a test comment body."
+            }
+        }
 
+        self.client = APIClient()
+        self.unauthorised_client = APIClient()
+
+
+    def create_user(self, user=None):
+        if not user:
+            user = self.user
+        response = self.client.post(self.signup_url, user, format='json')
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION=token)
         return token
 
     def create_article(self):
