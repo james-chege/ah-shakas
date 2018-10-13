@@ -6,9 +6,9 @@ from authors.apps.articles.tests.base_tests import BaseTest
 from authors.apps.articles.models import ArticlesModel
 
 
-class ArticleTests(BaseTest):    
+class ArticleTests(BaseTest):
 
-  
+
     def test_anyone_can_get_articles(self):
         """This method tests is anyone can access articles endpoint"""
         response = self.client.get(self.url, format='json')
@@ -26,7 +26,7 @@ class ArticleTests(BaseTest):
         token = self.create_user()
         response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    
+
     def test_create_articles_unauthorized_user(self):
         """This method checks if an unauthorized user cannot create an article"""
         response = self.client.post(self.url, self.article, format='json')
@@ -58,7 +58,7 @@ class ArticleTests(BaseTest):
     def test_unauthorised_user_update(self):
         """This method tests if unauthorized user can update existing articles"""
         url = self.single_article_details()
-        self.client.credentials(HTTP_AUTHORIZATION=None)
+        self.client.credentials(HTTP_AUTHORIZATION='')
         r = self.client.put(url, data={"article": {"title": "Updated Title", "body": "Updated body"}}, format='json')
         self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -75,6 +75,6 @@ class ArticleTests(BaseTest):
     def test_unauthorised_user_delete(self):
         """This method tests if a non owner can delete an article"""
         url = self.single_article_details()
-        self.client.credentials(HTTP_AUTHORIZATION=None)
+        self.client.credentials(HTTP_AUTHORIZATION='')
         response = self.client.delete(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

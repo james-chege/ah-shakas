@@ -5,6 +5,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from .models import User
 
 
+
 """Configure JWT Here"""
 class JWTAuthentication(authentication.BaseAuthentication):
     """
