@@ -7,7 +7,7 @@ addons:
   postgresql: "9.6"
 
 services:
-  - postgresql       
+  - postgresql
 
 install:
   - pip install pipenv

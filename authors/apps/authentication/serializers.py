@@ -1,9 +1,9 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.tokens import default_token_generator, PasswordResetTokenGenerator
 from rest_framework.validators import UniqueValidator
+from django.contrib.auth.tokens import default_token_generator, PasswordResetTokenGenerator
 from rest_framework import serializers
-
 from .models import User
-
 
 class RegistrationSerializer(serializers.ModelSerializer):
     """Serializers registration requests and creates a new user."""
@@ -17,7 +17,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
                 message='This email is already used by another user',
             )
         ],
-        error_messages={ 
+        error_messages={
             'required': 'Email is required',
         }
     )
@@ -137,7 +137,7 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Handles serialization and deserialization of User objects."""
 
-    # Passwords must be at least 8 characters, but no more than 128 
+    # Passwords must be at least 8 characters, but no more than 128
     # characters. These values are the default provided by Django. We could
     # change them, but that would create extra work while introducing no real
     # benefit, so let's just stick with the defaults.
@@ -155,7 +155,7 @@ class UserSerializer(serializers.ModelSerializer):
         # specifying the field with `read_only=True` like we did for password
         # above. The reason we want to use `read_only_fields` here is because
         # we don't need to specify anything else about the field. For the
-        # password field, we needed to specify the `min_length` and 
+        # password field, we needed to specify the `min_length` and
         # `max_length` properties too, but that isn't the case for the token
         # field.
 
@@ -187,6 +187,34 @@ class UserSerializer(serializers.ModelSerializer):
 
         return instance
 
+class EmailSerializer(serializers.Serializer):
+    """
+    serializes email
+    """
+    email = serializers.EmailField(max_length=255, required=True)
+
+class PasswordResetSerializer(serializers.ModelSerializer):
+    """
+    serializes password and email
+    """
+    email = serializers.EmailField(max_length=255, required=True)
+    password = serializers.RegexField(
+        regex="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$",
+        max_length=128,
+        min_length=8,
+        write_only=True,
+        required=True,
+        error_messages={
+            'required': 'Password is required',
+            'invalid': 'Password must have a number and a letter',
+            'min_length': 'Password must have at least 8 characters',
+            'max_length': 'Password cannot be more than 128 characters'
+        }
+    )
+
+    class Meta:
+        model = User
+        fields = ('email', 'password')
 
 class SocialSignUpSerializer(serializers.Serializer):
     """

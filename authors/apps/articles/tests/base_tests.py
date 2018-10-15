@@ -14,7 +14,7 @@ class BaseTest(APITestCase):
         self.client = APIClient()
         self.unauthorised_client = APIClient()
         self.signup_url = API_Reverse('authentication:user-registration')    
-        self.login_url = API_Reverse('authentication:login')    
+        self.login_url = API_Reverse('authentication:user_login')    
         
         self.user = {
             "user": {

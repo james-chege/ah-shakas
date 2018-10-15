@@ -154,6 +154,8 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'authors.apps.authentication.backends.JWTAuthentication',
+         'rest_framework.authentication.SessionAuthentication',
+         'rest_framework.authentication.BasicAuthentication',
     ),
 }
 
@@ -206,3 +208,9 @@ EMAIL_USE_TLS = True
 DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
 django_heroku.settings(locals())
 
+#send grid credentials
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True

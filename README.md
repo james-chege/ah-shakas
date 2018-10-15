@@ -48,6 +48,10 @@ export DB_NAME=name of your database
 export DB_USER=username you use to access the database
 export DB_PASSWORD=your password
 export DB_HOST=host url of your database e.g localhost
+export EMAIL_HOST=your email host
+export EMAIL_HOST_USER=your username on the mail host
+export EMAIL_HOST_PASSWORD=password
+export EMAIL_PORT=587
 ```
 Note: There is no space next to '='
 

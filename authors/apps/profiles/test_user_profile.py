@@ -26,7 +26,7 @@ class ProfileTest(APITestCase):
             }
         }
 
-        self.login_url = reverse('authentication:login')
+        self.login_url = reverse('authentication:user_login')
         self.url_register = reverse('authentication:user-registration')
         self.url_profile = reverse('profiles:user-profile', kwargs={"username": self.user['user']['username']})
 
