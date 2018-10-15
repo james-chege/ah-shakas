@@ -206,7 +206,7 @@ EMAIL_USE_TLS = True
 
 # app default domain
 DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
-# django_heroku.settings(locals())
+django_heroku.settings(locals())
 
 #send grid credentials
 EMAIL_HOST = os.getenv('EMAIL_HOST')
