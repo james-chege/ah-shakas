@@ -198,6 +198,7 @@ class PasswordResetAPIView(generics.CreateAPIView):
         user.save()
         return Response({"message":"password successfully changed"}, status=status.HTTP_200_OK)
 
+
 class SocialSignUp(CreateAPIView):
     renderer_classes = (UserJSONRenderer,)
     serializer_class = SocialSignUpSerializer

@@ -85,7 +85,12 @@ class TestPasswordReset(APITestCase):
         }
         self.register_url = api_reverse('authentication:user-registration')
         self.client.post(self.register_url, self.user, format="json")
-        User.is_active = True
+        
+        # activate this user
+        user = User.objects.get(email='koechkevin92@gmail.com')
+        user.is_active = True
+        user.save()
+        
         email='koechkevin92@gmail.com'
         user_object = User.objects.filter(email=email).first()
         token_generator = PasswordResetTokenGenerator()
@@ -141,7 +146,7 @@ class TestPasswordReset(APITestCase):
         test login new password
         """
         data = {"password":"Kibitok92"}
-        login_data = self.user = {
+        login_data = self.user =  {
             'user' : {
                 'email': 'koechkevin92@gmail.com',
                 'password': 'Kibitok92'
@@ -151,7 +156,6 @@ class TestPasswordReset(APITestCase):
         login_url = api_reverse('authentication:user_login')
         response = self.client.post(login_url, login_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
 
     def test_old_password(self):
         """
