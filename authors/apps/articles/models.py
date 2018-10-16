@@ -94,3 +94,23 @@ class LikesDislikes(models.Model):
 
     class Meta:
         unique_together = ('article', 'reader')
+class CommentHistory(models.Model):
+    """
+    Model for comment history
+    """
+
+    body = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    parent = models.ForeignKey( 
+        Comment, 
+        null=False, 
+        blank=False, 
+        related_name='history', 
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return self.body
+
+    class Meta:
+        ordering = ('created_at',)
