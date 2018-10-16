@@ -2,9 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework.reverse import reverse as api_reverse
 from rest_framework import status
-
-
-from .models import UserManager
+from authors.apps.authentication.models import UserManager
 
 
 class AuthenticationTest(APITestCase):
@@ -30,15 +28,7 @@ class AuthenticationTest(APITestCase):
         """
         response = self.client.post(self.url, self.user, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn(b'jane@doe.com', response.content)
-
-    def test_token_generation(self):
-        """
-        Test API can generate token upon successful registration
-        """
-        response = self.client.post(self.url, self.user, format='json')
-        self.assertEqual(response.status_code,status.HTTP_201_CREATED)
-        self.assertIn(b'token', response.content)    
+        self.assertIn(b'go to your email and click the confirmation link', response.content)
     
     def test_user_cannot_signup_without_email(self):
         """

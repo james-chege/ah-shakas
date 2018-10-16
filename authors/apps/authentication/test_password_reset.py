@@ -85,7 +85,12 @@ class TestPasswordReset(APITestCase):
         }
         self.register_url = api_reverse('authentication:user-registration')
         self.client.post(self.register_url, self.user, format="json")
-        User.is_active = True
+        
+        # activate this user
+        user = User.objects.get(email='koechkevin92@gmail.com')
+        user.is_active = True
+        user.save()
+        
         email='koechkevin92@gmail.com'
         user_object = User.objects.filter(email=email).first()
         token_generator = PasswordResetTokenGenerator()

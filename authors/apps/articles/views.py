@@ -90,7 +90,7 @@ class CommentsListCreateView(ListCreateAPIView):
         article = get_article(slug=slug)
         if isinstance(article, dict):
             return Response(article, status=status.HTTP_404_NOT_FOUND)
-        comments = article.comments.filter()
+        comments = article.comments.filter(parent=None)
         serializer = self.serializer_class(comments.all(), many=True)
         data = {
             'count': comments.count(),

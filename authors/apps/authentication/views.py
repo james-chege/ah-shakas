@@ -1,9 +1,8 @@
 from rest_framework import status, generics
 from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
+from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.core.mail import send_mail
 from .models import User
 from social_django.utils import load_backend, load_strategy
 from social.backends.oauth import BaseOAuth1, BaseOAuth2
@@ -17,24 +16,54 @@ from .password_token import generate_password_token, get_password_token_data
 import os
 from django.template.loader import render_to_string
 
-class RegistrationAPIView(APIView):
+from .token import generate_token
+from django.core.mail import send_mail
+from django.conf import settings
+from django.http import HttpResponse
+import jwt
+from .models import User
+
+
+class RegistrationAPIView(CreateAPIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = RegistrationSerializer
 
     def post(self, request):
-        user = request.data.get('user', {})
+        user = request.data.get('user', {} )
 
         # The create serializer, validate serializer, save serializer pattern
         # below is common and you will see it a lot throughout this course and
         # your own work later on. Get familiar with it.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+
+        user_email = user['email']
+        user_name = user['username']
+        token = generate_token(user_name)
+        current_domain = settings.DEFAULT_DOMAIN
+
+        # send email to the user for verification
+        url = current_domain + "/api/verify/" + str(token)
+        body = render_to_string('verify.html', {
+            'link': url,
+            'name': user_name
+        })
+        send_mail(
+            'Verify your email',
+            'Please verify your account.',
+            'no-reply@authors-heaven.com',
+            [user_email],
+            html_message = body,
+            fail_silently=False,
+        )
+        content = "Thank you for registering at Authors heaven."\
+        "To start using authors heaven, go to your email and click the confirmation "\
+        "link which we haves sent to you :D"
+        return_message = {"Message": content}
         serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        return Response(return_message, status=status.HTTP_201_CREATED)
 
 class LoginAPIView(CreateAPIView):
     permission_classes = (AllowAny,)
@@ -80,6 +109,22 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class VerifyAPIView(APIView):
+    """
+    A class to verify user using the token sent to the email
+    """
+    permission_classes = (AllowAny,)
+    def get(self, request, token):
+        username = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
+        user_in_db = User.objects.get(username = username['username'])
+        try:
+            user_in_db.is_active = True
+            user_in_db.save()
+            return Response(data = {"Message": "Congratulations! You have successfully activated your account."}, 
+                            status=status.HTTP_200_OK)
+        except:
+            return Response(data={"Message": "Invalid link"},
+                status=status.HTTP_400_BAD_REQUEST)
 class EmailSentAPIView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
@@ -152,6 +197,7 @@ class PasswordResetAPIView(generics.CreateAPIView):
         user.set_password(password)
         user.save()
         return Response({"message":"password successfully changed"}, status=status.HTTP_200_OK)
+
 
 class SocialSignUp(CreateAPIView):
     renderer_classes = (UserJSONRenderer,)
