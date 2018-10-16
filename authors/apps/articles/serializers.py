@@ -9,6 +9,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes
 from authors.apps.profiles.serializers import ProfileSerializer
 from authors.apps.articles.relations import TagsRelation
+from .models import ArticlesModel, Rating, Comment, Favourite, CommentHistory
 
 
 class ArticlesSerializers(serializers.ModelSerializer):
@@ -169,6 +170,17 @@ class CommentsSerializers(serializers.ModelSerializer):
            'required': 'Comments field cannot be blank'
        }
     )
+
+    history = serializers.SerializerMethodField()
+
+    def get_history(self, obj):
+       return [
+            {
+                'body': history.body,
+                'created_at': self.format_date(history.created_at),
+            }  for history in obj.history.all()
+        ]
+
     def format_date(self, date):
         return date.strftime('%d %b %Y %H:%M:%S')
 
@@ -177,16 +189,15 @@ class CommentsSerializers(serializers.ModelSerializer):
        overide representation for custom output
        """
        threads = [
-                    {
-
-                    'id': thread.id,
-                        'body': thread.body,
-                        'author': thread.author.username,
-                        'created_at': self.format_date(thread.created_at),
-                        'replies': thread.threads.count(),
-                        'updated_at': self.format_date(thread.updated_at)
-                    }  for thread in instance.threads.all()
-                ]
+            {
+                'id': thread.id,
+                'body': thread.body,
+                'author': thread.author.username,
+                'created_at': self.format_date(thread.created_at),
+                'replies': thread.threads.count(),
+                'updated_at': self.format_date(thread.updated_at)
+            }  for thread in instance.threads.all()
+        ]
     
        representation = super(CommentsSerializers, self).to_representation(instance)
        representation['created_at'] = self.format_date(instance.created_at)
@@ -201,7 +212,16 @@ class CommentsSerializers(serializers.ModelSerializer):
 
     class Meta:
        model = Comment
-       fields = ('id', 'body', 'created_at', 'updated_at', 'author', 'article', 'parent') 
+       fields = (
+           'id', 
+           'body', 
+           'created_at', 
+           'updated_at', 
+           'author', 
+           'article', 
+           'parent',
+           'history'
+       )  
         
 
 class RatingSerializer(serializers.ModelSerializer):
@@ -253,3 +273,18 @@ class LikesDislikesSerializer(serializers.ModelSerializer):
                 message = 'You have already liked this article.'
             )
         ]
+       
+
+class CommentHistorySerializer(serializers.ModelSerializer):
+    body = serializers.CharField(
+        required=True,
+        max_length=200,
+        error_messages={
+            'required': 'Title is required',
+            'max_length': 'Title cannot be more than 200 characters'
+        }
+    )
+
+    class Meta:
+        model = CommentHistory
+        fields = ('body', 'parent', 'created_at')
