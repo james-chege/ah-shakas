@@ -89,4 +89,16 @@ class BaseTest(APITestCase):
     def single_article_details(self):
         slug = self.create_article()
         url = API_Reverse('articles:article-details', {slug: 'slug'})
-        return url       
+        return url
+
+    def create_comment(self):
+        slug = self.create_article()
+        post_url = API_Reverse('articles:comments', {slug: 'slug'})
+        post_response = self.client.post(post_url, self.comment, format='json')
+        id = post_response.data['id']
+        return id, slug
+
+    def update_comment(self, id, slug, new_comment):
+        url = API_Reverse('articles:comment-details', {slug: 'slug', id: 'id'})
+        response = self.client.put(url, data={'comment': {'body': new_comment}}, format='json')
+        return response
