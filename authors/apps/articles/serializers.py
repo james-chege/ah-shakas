@@ -6,7 +6,7 @@ from authors import settings
 from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.profiles.models import Profile
 from rest_framework.validators import UniqueTogetherValidator
-from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike
+from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike, ArticleStat
 from authors.apps.profiles.serializers import ProfileSerializer
 from authors.apps.articles.relations import TagsRelation
 from .models import ArticlesModel, Rating, Comment, Favourite, CommentHistory
@@ -185,6 +185,23 @@ class FavouriteSerializer(serializers.ModelSerializer):
             )
         ]
 
+class ArticleStatSerializer(serializers.ModelSerializer):
+    """
+    Serializer class for reading stats
+    """
+    slug = serializers.SlugField(read_only=True)
+    view_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+
+    def get_comment_count(self, value):
+       return Comment.objects.filter(article=value).count()
+
+    def get_view_count(self, value):
+       return ArticleStat.objects.filter(article=value).count()
+
+    class Meta:
+       model = ArticlesModel
+       fields = ['slug', 'view_count', 'comment_count']
 
 class CommentsSerializers(serializers.ModelSerializer):
     body = serializers.CharField(

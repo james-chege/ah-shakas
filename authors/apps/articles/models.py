@@ -47,6 +47,13 @@ class ArticlesModel(models.Model):
         ordering = ['-created_at']
    
 
+class ArticleStat(models.Model):
+    """
+    Model for reading statistics
+    """
+    user = models.ForeignKey(User, related_name="article_views", on_delete=models.CASCADE)
+    article = models.ForeignKey(ArticlesModel, related_name="article_views", on_delete=models.CASCADE)
+
 class Comment(models.Model):
     """
     Model for comments

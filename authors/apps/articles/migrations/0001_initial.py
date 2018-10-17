@@ -34,6 +34,14 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='ArticleView',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('article', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='article_views', to='articles.ArticlesModel')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='article_views', to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.CreateModel(
             name='Comment',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
