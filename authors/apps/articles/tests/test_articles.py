@@ -94,4 +94,38 @@ class ArticleTests(BaseTest):
         self.activate_user()
         token = self.login_user()
         response = self.client.post(self.url, self.article, format="json", HTTP_AUTHORIZATION=token)
-        self.assertIn("time_to_read", json.dumps(response.data))
+        self.assertIn("url", json.dumps(response.data))
+
+    def test_if_article_returns_facebook_url(self):
+        """This method tests whether the API returns time it takes to read an article"""
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        response = self.client.post(self.url, self.article, format="json", HTTP_AUTHORIZATION=token)
+        self.assertIn("facebook", json.dumps(response.data))
+
+
+
+    def test_if_article_returns_linkedin_url(self):
+        """This method tests whether the API returns time it takes to read an article"""
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        response = self.client.post(self.url, self.article, format="json", HTTP_AUTHORIZATION=token)
+        self.assertIn("Linkedin", json.dumps(response.data))
+
+    def test_if_article_returns_twitter_url(self):
+        """This method tests whether the API returns time it takes to read an article"""
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        response = self.client.post(self.url, self.article, format="json", HTTP_AUTHORIZATION=token)
+        self.assertIn("twitter", json.dumps(response.data))
+
+    def test_if_article_returns_mail_url(self):
+        """This method tests whether the API returns time it takes to read an article"""
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        response = self.client.post(self.url, self.article, format="json", HTTP_AUTHORIZATION=token)
+        self.assertIn("mail", json.dumps(response.data))
