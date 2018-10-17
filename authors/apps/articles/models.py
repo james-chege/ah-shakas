@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 
+
 from authors.apps.authentication.models import User
 
 
@@ -40,26 +41,26 @@ class ArticlesModel(models.Model):
    
 
 class Comment(models.Model):
-   """
-   Model for comments
-   """
-   
-   body = models.CharField(max_length=200)
-   created_at = models.DateTimeField(auto_now_add=True)
-   updated_at = models.DateTimeField(auto_now=True)
-   author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
-   article = models.ForeignKey(ArticlesModel, related_name='comments', on_delete=models.CASCADE)
-   parent = models.ForeignKey(
-                                'self',
-                                null=True,
-                                blank=True,
-                                related_name='threads',
-                                on_delete=models.CASCADE
-                            )
+    """
+    Model for comments
+    """
 
-   def __str__(self):
+    body = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
+    article = models.ForeignKey(ArticlesModel, related_name='comments', on_delete=models.CASCADE)
+    parent = models.ForeignKey(
+                                    'self',
+                                    null=True,
+                                    blank=True,
+                                    related_name='threads',
+                                    on_delete=models.CASCADE
+                                )
+
+    def __str__(self):
        return self.body
-    
-    
-   class Meta:
+
+
+    class Meta:
        ordering = ('-created_at',)

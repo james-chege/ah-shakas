@@ -2,6 +2,7 @@ from rest_framework.reverse import reverse as API_Reverse
 from rest_framework import status
 import json
 
+from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.articles.tests.base_tests import BaseTest
 from authors.apps.articles.models import ArticlesModel
 
@@ -88,3 +89,11 @@ class ArticleTests(BaseTest):
         self.client.credentials(HTTP_AUTHORIZATION='')
         response = self.client.delete(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_article_dispalys_time_taken_to_read_article(self):
+        """This method tests whether the API returns time it takes to read an article"""
+        self.create_user()
+        self.activate_user()
+        token = self.login_user()
+        response = self.client.post(self.url, self.article, format="json", HTTP_AUTHORIZATION=token)
+        self.assertIn("time_to_read", json.dumps(response.data))    

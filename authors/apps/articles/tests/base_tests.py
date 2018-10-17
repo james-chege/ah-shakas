@@ -6,6 +6,7 @@ from django.urls import reverse
 from authors.apps.authentication.models import User
 from authors.apps.authentication.token import generate_token
 
+
 class BaseTest(APITestCase):
     """This class provides a base for other tests"""
 
