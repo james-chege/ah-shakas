@@ -51,16 +51,21 @@ class Comment(models.Model):
     author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
     article = models.ForeignKey(ArticlesModel, related_name='comments', on_delete=models.CASCADE)
     parent = models.ForeignKey(
-                                    'self',
-                                    null=True,
-                                    blank=True,
-                                    related_name='threads',
-                                    on_delete=models.CASCADE
-                                )
+        'self',
+        null=True,
+        blank=True,
+        related_name='threads',
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
        return self.body
-
-
+    
     class Meta:
-       ordering = ('-created_at',)
+        ordering = ('-created_at',)
+
+
+class Rating(models.Model):
+    user = models.ForeignKey(User, related_name='rating', on_delete=models.CASCADE)
+    article = models.ForeignKey(ArticlesModel, related_name='rating', on_delete=models.CASCADE)
+    rating = models.FloatField(null=False)

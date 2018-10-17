@@ -47,27 +47,43 @@ class BaseTest(APITestCase):
             }
         }
 
-    def create_user(self):
-        response = self.client.post(self.signup_url, self.user, format='json')
+    def create_user(self, user=None):
+        if not user:
+            user = self.user
+        response = self.client.post(self.signup_url, user, format='json')
         return response
-    def activate_user(self):
+
+    def activate_user(self, user=None):
         """Activate user after login"""
-        self.client.post(self.signup_url, self.user, format='json')
-        user = self.user['user']
-        token = generate_token(user['username'])
+        if not user:
+            user = self.user
+        self.client.post(self.signup_url, user, format='json')
+        token = generate_token(user['user']['username'])
         self.client.get(reverse("authentication:verify", args=[token]))
-    def login_user(self):
+
+    def login_user(self, user=None):
         """This will login an existing user"""
-        response = self.client.post(self.login_url, self.user, format='json')
+        if not user: 
+            user = self.user
+        response = self.client.post(self.login_url, user, format='json')
         token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION=token)
+
         return token
 
-    def create_article(self):
-        self.create_user()
-        self.activate_user()
-        token = self.login_user()
+    def create_and_login_user(self, user=None):
+        if not user:
+            user = self.user
+        self.create_user(user=user)
+        self.activate_user(user=user)
+        return self.login_user(user=user)
+
+    def create_article(self, token=None):
+        if not token:
+            self.create_user()
+            self.activate_user()
+            token = self.login_user()
         response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
-        self.client.credentials(HTTP_AUTHORIZATION=token)
         slug = response.data['slug']
 
         return slug

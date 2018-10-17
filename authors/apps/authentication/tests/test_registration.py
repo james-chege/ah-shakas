@@ -86,7 +86,7 @@ class AuthenticationTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(b'Username is required', response.content)
 
-    def test_user_cannot_signup_without_username(self):
+    def test_user_cannot_signup_with_wrong_username(self):
         """
         User cannot login with username with a space
         """
