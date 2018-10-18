@@ -36,7 +36,19 @@ class ProfileSerializer(serializers.ModelSerializer):
             instance.user.save()
         return instance
 
-   
+
     class Meta:
         model = Profile
         fields = ('username', 'bio', 'image_url', 'isfollowing', 'created_at', 'updated_at')
+
+class ProfileListSerializer(serializers.ModelSerializer):
+    """
+    serializes the list of profiles to be shown
+    """
+    username = serializers.CharField(source='user.username', read_only=True)
+    bio = serializers.CharField()
+    image = serializers.ImageField(default=None)
+    isfollowing = serializers.BooleanField()
+    class Meta:
+        model = Profile
+        fields = ['username', 'bio', 'image','isfollowing']

@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework.reverse import reverse
 from rest_framework import status
-from .models import Profile
+from ..models import Profile
 
 
 from authors.apps.authentication.models import UserManager
@@ -18,11 +18,11 @@ class ProfileTest(APITestCase):
         """
         Method for setting up user
         """
-        self.user =  { 
-            'user' : { 
-                'username': 'janeDoe', 
-                'email': 'jane@doe.com', 
-                'password': 'janedoe123', 
+        self.user =  {
+            'user' : {
+                'username': 'janeDoe',
+                'email': 'jane@doe.com',
+                'password': 'janedoe123',
             }
         }
 
@@ -44,7 +44,6 @@ class ProfileTest(APITestCase):
         response = self.client.post(self.login_url, self.user, format='json')
         token = response.data['token']
         return token
-    
 
     def test_model_can_create_user_profile(self):
         """
@@ -62,16 +61,16 @@ class ProfileTest(APITestCase):
         self.client.post(self.url_register, self.user, format='json')
         response = self.client.get(self.url_profile, format='json', HTTP_AUTHORIZATION=token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    
+
     def test_update_user_profile(self):
         self.registration()
         self.activate_user()
         token = self.login_user()
         self.client.post(self.url_register, self.user, format='json')
         response = self.client.put(self.url_profile,
-        { 
-            'user' : { 
-                'username': 'jDoe', 
+        {
+            'user' : {
+                'username': 'jDoe',
                 'bio': 'I am that guy'
             }
         }, format='json', HTTP_AUTHORIZATION=token)
@@ -83,9 +82,9 @@ class ProfileTest(APITestCase):
         token = self.login_user()
         self.client.post(self.url_register, self.user, format='json')
         response = self.client.put(self.url_profile,
-        { 
-            'user' : { 
-                'username': 'jDo', 
+        {
+            'user' : {
+                'username': 'jDo',
                 'bio': 'I am that guy'
             }
         }, format='json', HTTP_AUTHORIZATION=token)
@@ -99,9 +98,9 @@ class ProfileTest(APITestCase):
         token = self.login_user()
         self.client.post(self.url_register, self.user, format='json')
         response = self.client.put(self.url_profile,
-        { 
-            'user' : { 
-                'username': '', 
+        {
+            'user' : {
+                'username': '',
                 'bio': 'I am that guy'
             }
         }, format='json', HTTP_AUTHORIZATION=token)
@@ -114,9 +113,9 @@ class ProfileTest(APITestCase):
         token = self.login_user()
         self.client.post(self.url_register, self.user, format='json')
         response = self.client.put(self.url_profile,
-        { 
-            'user' : { 
-                'username': 'ia o', 
+        {
+            'user' : {
+                'username': 'ia o',
                 'bio': 'I am that guy'
             }
         }, format='json', HTTP_AUTHORIZATION=token)
@@ -129,9 +128,9 @@ class ProfileTest(APITestCase):
         token = self.login_user()
         self.client.post(self.url_register, self.user, format='json')
         response = self.client.put(self.url_profile,
-        { 
-            'user' : { 
-                'username': 'iano', 
+        {
+            'user' : {
+                'username': 'iano',
                 'bio': ''
             }
         }, format='json', HTTP_AUTHORIZATION=token)
@@ -144,9 +143,9 @@ class ProfileTest(APITestCase):
         token = self.login_user()
         self.client.post(self.url_register, self.user, format='json')
         response = self.client.put(self.url_profile,
-        { 
-            'user' : { 
-                'username': 'iano', 
+        {
+            'user' : {
+                'username': 'iano',
                 'bio': '  '
             }
         }, format='json', HTTP_AUTHORIZATION=token)

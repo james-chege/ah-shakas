@@ -105,3 +105,4 @@ db.sqlite3
 .ycm_extra_conf.py
 *.DS_Store
 .vscode/settings.json
+*.DS_Store
