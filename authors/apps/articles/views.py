@@ -1,16 +1,20 @@
 from rest_framework.generics import (ListCreateAPIView, 
         RetrieveUpdateDestroyAPIView, GenericAPIView)
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 
 from .permissions import IsOwnerOrReadonly
-from .models import ArticlesModel, Comment, Rating
-from .serializers import ArticlesSerializers, CommentsSerializers, RatingSerializer
-from .renderers import ArticlesRenderer, RatingJSONRenderer
+from .models import ArticlesModel, Comment, Rating, Favourite
+from .serializers import (ArticlesSerializers, 
+        CommentsSerializers, RatingSerializer,
+        FavouriteSerializer)
+from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
+from .permissions import IsOwnerOrReadonly
 
-
+ 
 def get_article(slug):
     """
     This method returns article for further reference made to article slug
@@ -40,7 +44,7 @@ class ArticlesList(ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
-class ArticlesDetails(RetrieveUpdateDestroyAPIView, ):
+class ArticlesDetails(RetrieveUpdateDestroyAPIView):
     queryset = ArticlesModel.objects.all()
     serializer_class = ArticlesSerializers
     renderer_classes = (ArticlesRenderer,)
@@ -289,3 +293,52 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
         serializer.save()
         return Response(serializer.data)
     
+class FavouriteGenericAPIView(APIView):
+    serializer_class = FavouriteSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Favourite.objects.all()
+    renderer_classes= (FavouriteJSONRenderer,)
+
+    def post(self, request, slug):
+        '''method to favourte by adding to db'''
+        article = None
+        try:
+            article = ArticlesModel.objects.get(slug=slug)
+        except ArticlesModel.DoesNotExist:
+            raise NotFound(detail={"article": [
+                        "does not exist"
+                        ]})
+        favourite = {}
+        favourite["user"] = request.user.id
+        favourite["article"] = article.pk
+        serializer = self.serializer_class(data=favourite)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        article_serializer = ArticlesSerializers(instance=article, context={'request': request})
+        data = {"article":article_serializer.data}
+        data["article"]["favourited"]=True
+        data["message"] = "favourited"
+        return Response(data, status.HTTP_200_OK)
+
+    def delete(self, request, slug):
+        '''Method to unfavourite by deleting from the db '''
+        article = None
+        '''get article'''
+        try:
+            article = ArticlesModel.objects.get(slug=slug)
+        except ArticlesModel.DoesNotExist:
+            raise NotFound(detail={"article": [
+                        "does not exist"
+                        ]})
+        "check if they have already unfavourited"
+        try:
+            favourite = Favourite.objects.get(user=request.user.id, article=article.pk)
+        except Favourite.DoesNotExist:
+            raise NotFound(detail={"message": [
+                        "you had not favourited this article"
+                        ]})
+        favourite.delete()
+        article_serializer = ArticlesSerializers(instance=article, context={'request': request})
+        data = {"article":article_serializer.data}
+        data["message"] = "unfavourited"
+        return Response(data, status.HTTP_200_OK)

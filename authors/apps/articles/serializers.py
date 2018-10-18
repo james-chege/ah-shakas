@@ -6,9 +6,9 @@ from authors import settings
 from authors.apps.authentication.serializers import UserSerializer
 from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.profiles.models import Profile
+from rest_framework.validators import UniqueTogetherValidator
 from authors.apps.profiles.serializers import ProfileSerializer
-
-from .models import ArticlesModel, Rating, Comment
+from .models import ArticlesModel, Rating, Comment, Favourite
 
 
 class ArticlesSerializers(serializers.ModelSerializer):
@@ -37,8 +37,15 @@ class ArticlesSerializers(serializers.ModelSerializer):
     image_url = serializers.URLField(
         required=False
     )
+    favourited = serializers.SerializerMethodField()
+    def get_favourited(self, obj):
+        try:
+            favourite = Favourite.objects.get(user=self.context["request"].user.id, article=obj.id)
+            return True
+        except:
+            return False
 
-    author = serializers.SerializerMethodField(read_only=True)
+    author = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
 
     def get_author(self, obj):
@@ -54,7 +61,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
 
         # Check that this user is authenticated in order to include their rating,
         # if not, we return the default rating 
-        user = self.context['request'].user
+        user = self.context["request"].user
         if user.is_authenticated:
             try:
                 rating = Rating.objects.get(user=user, article=obj.id).rating
@@ -89,9 +96,22 @@ class ArticlesSerializers(serializers.ModelSerializer):
             'author',
             'rating',
             'created_at',
-            'updated_at'
+            'updated_at',
+            'favourited'
         )
 
+class FavouriteSerializer(serializers.ModelSerializer):
+    '''serializer for favouriting'''
+    class Meta:
+        model = Favourite
+        fields=('article', 'user')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Favourite.objects.all(),
+                fields=('article', 'user'),
+                message = "You have already favourited this article"
+            )
+        ]
 
 class CommentsSerializers(serializers.ModelSerializer):
     body = serializers.CharField(

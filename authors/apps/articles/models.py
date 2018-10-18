@@ -69,3 +69,8 @@ class Rating(models.Model):
     user = models.ForeignKey(User, related_name='rating', on_delete=models.CASCADE)
     article = models.ForeignKey(ArticlesModel, related_name='rating', on_delete=models.CASCADE)
     rating = models.FloatField(null=False)
+    
+class Favourite(models.Model):
+    '''model for favourating articles'''
+    article = models.ForeignKey(ArticlesModel, related_name="favourited", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="favourites", on_delete=models.CASCADE)
