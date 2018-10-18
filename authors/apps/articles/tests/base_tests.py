@@ -1,9 +1,7 @@
 from rest_framework.test import APITestCase, APIClient
 from rest_framework.reverse import reverse as API_Reverse
-from django.core import mail
 from django.urls import reverse
 
-from authors.apps.authentication.models import User
 from authors.apps.authentication.token import generate_token
 
 
@@ -37,7 +35,8 @@ class BaseTest(APITestCase):
             "article": {
                 "title": "test article",
                 "description": "This is test description",
-                "body": "This is a test body"
+                "body": "This is a test body",
+                "tags": ["test", "tags"]
             }
         }
 

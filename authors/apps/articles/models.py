@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
 
-
 from authors.apps.authentication.models import User
 
 
@@ -11,6 +10,7 @@ class ArticlesModel(models.Model):
     title = models.CharField(max_length=128, blank=False)
     description = models.CharField(max_length=120, blank=False)
     body = models.TextField(blank=False)
+    tags = models.ManyToManyField('articles.Tags', related_name='articles')
     image_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
@@ -60,7 +60,7 @@ class Comment(models.Model):
 
     def __str__(self):
        return self.body
-    
+
     class Meta:
         ordering = ('-created_at',)
 
@@ -69,8 +69,16 @@ class Rating(models.Model):
     user = models.ForeignKey(User, related_name='rating', on_delete=models.CASCADE)
     article = models.ForeignKey(ArticlesModel, related_name='rating', on_delete=models.CASCADE)
     rating = models.FloatField(null=False)
-    
+
+
 class Favourite(models.Model):
     '''model for favourating articles'''
     article = models.ForeignKey(ArticlesModel, related_name="favourited", on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="favourites", on_delete=models.CASCADE)
+
+
+class Tags(models.Model):
+    tag = models.CharField(max_length=120)
+
+    def __str__(self):
+        return self.tag

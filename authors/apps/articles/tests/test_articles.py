@@ -9,7 +9,6 @@ from authors.apps.articles.models import ArticlesModel
 
 class ArticleTests(BaseTest):
 
-
     def test_anyone_can_get_articles(self):
         """This method tests is anyone can access articles endpoint"""
         response = self.client.get(self.url, format='json')

@@ -1,20 +1,24 @@
-from rest_framework.generics import (ListCreateAPIView, 
-        RetrieveUpdateDestroyAPIView, GenericAPIView)
+from rest_framework.generics import (ListCreateAPIView,
+                                     RetrieveUpdateDestroyAPIView,
+                                     GenericAPIView,
+                                     ListAPIView)
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 
-from .permissions import IsOwnerOrReadonly
-from .models import ArticlesModel, Comment, Rating, Favourite
-from .serializers import (ArticlesSerializers, 
-        CommentsSerializers, RatingSerializer,
-        FavouriteSerializer)
+
+from .models import ArticlesModel, Comment, Rating, Favourite, Tags
+from .serializers import (ArticlesSerializers,
+                          CommentsSerializers,
+                          RatingSerializer,
+                          FavouriteSerializer,
+                          TagSerializers,)
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
 from .permissions import IsOwnerOrReadonly
 
- 
+
 def get_article(slug):
     """
     This method returns article for further reference made to article slug
@@ -25,7 +29,8 @@ def get_article(slug):
         return message
     # queryset always has 1 thing as long as it is unique
     return article
-    
+
+
 class ArticlesList(ListCreateAPIView):
     queryset = ArticlesModel.objects.all()
     serializer_class = ArticlesSerializers
@@ -71,6 +76,17 @@ class ArticlesDetails(RetrieveUpdateDestroyAPIView):
         """This method overwrites the default django for an error message"""
         super().delete(self, request, slug)
         return Response({"message": "Article Deleted Successfully"})
+
+
+class TagsView(ListAPIView):
+    queryset = Tags.objects.all()
+    serializer_class = TagSerializers
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def list(self, request):
+        data = self.get_queryset()
+        serializer = self.serializer_class(data, many=True)
+        return Response({'tags': serializer.data}, status=status.HTTP_200_OK)
 
 
 class RatingDetails(GenericAPIView):
@@ -200,7 +216,7 @@ class CommentsListCreateView(ListCreateAPIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def get(self, request, slug): 
+    def get(self, request, slug):
         """
         Method for getting all comments
         """
@@ -292,7 +308,7 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    
+
 class FavouriteGenericAPIView(APIView):
     serializer_class = FavouriteSerializer
     permission_classes = (IsAuthenticated,)

@@ -3,12 +3,12 @@ from django.db.models import Avg
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from authors import settings
-from authors.apps.authentication.serializers import UserSerializer
 from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.profiles.models import Profile
 from rest_framework.validators import UniqueTogetherValidator
+from .models import ArticlesModel, Rating, Comment, Favourite, Tags
 from authors.apps.profiles.serializers import ProfileSerializer
-from .models import ArticlesModel, Rating, Comment, Favourite
+from authors.apps.articles.relations import TagsRelation
 
 
 class ArticlesSerializers(serializers.ModelSerializer):
@@ -38,6 +38,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
         required=False
     )
     favourited = serializers.SerializerMethodField()
+
     def get_favourited(self, obj):
         try:
             favourite = Favourite.objects.get(user=self.context["request"].user.id, article=obj.id)
@@ -45,7 +46,9 @@ class ArticlesSerializers(serializers.ModelSerializer):
         except:
             return False
 
-    author = serializers.SerializerMethodField()
+    tags = TagsRelation(many=True, required=False)
+
+    author = serializers.SerializerMethodField(read_only=True)
     rating = serializers.SerializerMethodField()
 
     def get_author(self, obj):
@@ -84,7 +87,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
        representation = super(ArticlesSerializers, self).to_representation(instance)
        representation['time_to_read'] = get_time_to_read_article(instance)
        return representation
-    
+
     class Meta:
         model = ArticlesModel
         fields = (
@@ -92,6 +95,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
             'description',
             'body',
             'slug',
+            'tags',
             'image_url',
             'author',
             'rating',
@@ -99,6 +103,27 @@ class ArticlesSerializers(serializers.ModelSerializer):
             'updated_at',
             'favourited'
         )
+
+    def create(self, validated_data):
+        """This method creates an article instance object and adds tags to it"""
+        tags = validated_data.pop('tags', [])
+        # creates an article instance
+        article = ArticlesModel.objects.create(**validated_data)
+        # Adds tags to the article instance
+        for tag in tags:
+            article.tags.add(tag)
+        # returns the article object
+        return article
+
+
+class TagSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Tags
+        fields = ('tag',)
+
+    def to_representation(self, instance):
+        return instance.tag
+
 
 class FavouriteSerializer(serializers.ModelSerializer):
     '''serializer for favouriting'''
@@ -112,6 +137,7 @@ class FavouriteSerializer(serializers.ModelSerializer):
                 message = "You have already favourited this article"
             )
         ]
+
 
 class CommentsSerializers(serializers.ModelSerializer):
     body = serializers.CharField(

@@ -193,21 +193,6 @@ RATING_MIN = 0
 RATING_MAX = 5
 
 # Activate django-heroku for Heroku
-# django_heroku.settings(locals())
-
-# Parse Database environmental variables
-# DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
-
-#send grid credentials
-EMAIL_HOST = os.getenv('EMAIL_HOST')
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
-
-# app default domain
-DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
 django_heroku.settings(locals())
 
 #send grid credentials
@@ -216,6 +201,9 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+# app default domain
+DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
 
 #Words per minute(WPM)
 WPM = 250

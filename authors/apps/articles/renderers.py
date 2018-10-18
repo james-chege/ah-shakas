@@ -20,18 +20,16 @@ class ArticlesRenderer(renderers.BaseRenderer):
             return json.dumps(
                 {
                     'status': 'success',
-                    'articles': data
+                    'articles': data,
+                    'article_count': len(data)
                 }
             )
         else:
             # checks if the data received is an error message
-            error = data.get('detail')
+            error = data.get('detail') or data.get('errors')
             if error:
                 return json.dumps(
-                    {
-                        'status': 'error',
-                        'message': data
-                    }
+                    data
                 )
             else:
                 # if not an error then it must be a single article dictionary

@@ -19,14 +19,6 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
             ],
         ),
-        migrations.RemoveField(
-            model_name='articlesmodel',
-            name='createdAt',
-        ),
-        migrations.RemoveField(
-            model_name='articlesmodel',
-            name='updatedAt',
-        ),
         migrations.AddField(
             model_name='favourite',
             name='article',

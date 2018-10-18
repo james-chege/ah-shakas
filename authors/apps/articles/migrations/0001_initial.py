@@ -23,8 +23,6 @@ class Migration(migrations.Migration):
                 ('image_url', models.URLField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('createdAt', models.DateTimeField(auto_now_add=True)),
-                ('updatedAt', models.DateTimeField(auto_now=True)),
                 ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='article', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -54,5 +52,17 @@ class Migration(migrations.Migration):
                 ('article', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rating', to='articles.ArticlesModel')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rating', to=settings.AUTH_USER_MODEL)),
             ],
+        ),
+        migrations.CreateModel(
+            name='Tags',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('tag', models.CharField(max_length=120)),
+            ],
+        ),
+        migrations.AddField(
+            model_name='articlesmodel',
+            name='tags',
+            field=models.ManyToManyField(related_name='articles', to='articles.Tags'),
         ),
     ]
