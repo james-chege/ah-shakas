@@ -95,4 +95,4 @@ class ArticleTests(BaseTest):
         self.activate_user()
         token = self.login_user()
         response = self.client.post(self.url, self.article, format="json", HTTP_AUTHORIZATION=token)
-        self.assertIn("time_to_read", json.dumps(response.data))    
+        self.assertIn("time_to_read", json.dumps(response.data))

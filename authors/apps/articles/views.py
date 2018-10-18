@@ -9,14 +9,16 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 
 
-from .models import ArticlesModel, Comment, Rating, Favourite, Tags
+from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes
 from .serializers import (ArticlesSerializers,
                           CommentsSerializers,
                           RatingSerializer,
                           FavouriteSerializer,
-                          TagSerializers,)
+                          TagSerializers,
+                          LikesDislikesSerializer)
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
 from .permissions import IsOwnerOrReadonly
+
 
 
 def get_article(slug):
@@ -29,7 +31,6 @@ def get_article(slug):
         return message
     # queryset always has 1 thing as long as it is unique
     return article
-
 
 class ArticlesList(ListCreateAPIView):
     queryset = ArticlesModel.objects.all()
@@ -358,3 +359,175 @@ class FavouriteGenericAPIView(APIView):
         data = {"article":article_serializer.data}
         data["message"] = "unfavourited"
         return Response(data, status.HTTP_200_OK)
+
+
+class ArticlesLikesDislikes(GenericAPIView):
+    """
+    Class for creating and deleting article likes/dislikes
+    """
+    
+    queryset = LikesDislikes.objects.all()
+    serializer_class = LikesDislikesSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadonly)
+
+
+    def post(self, request, slug):
+        #Check if the article exists in the database
+        article = get_article(slug)
+        
+        if isinstance(article, dict):
+            return Response(article, status=status.HTTP_404_NOT_FOUND)
+
+        like = request.data.get('likes', None)
+
+        #Check if the data in the request a valid boolean
+        if type(like) == bool:
+
+            #Check if the article belongs to the current user
+            if article.author == request.user:
+                message = {'detail': 'You cannot like/unlike your own article'}
+                return Response(message, status=status.HTTP_400_BAD_REQUEST)
+            like_data = {
+                'reader': request.user.id,
+                'article': article.id,
+                'likes': like
+            }
+
+            try:
+                #Verify if the instance of the article and the user
+                #exist in the database and get the like
+                user_likes = LikesDislikes.objects.get(article=article.id, reader=request.user.id)
+
+                #if an instance of the user and article both exist in the database
+                #we update the existing data instead of creating a new one
+                if user_likes:
+                    #check if the stored data and the request data are the same
+                    #and both true
+                    if user_likes.likes and like:
+                        return Response(
+                            {
+                                'detail':'{}, you have already liked this article.'
+                                .format(request.user.username)
+                            },
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+
+                    #check if the stored data and the request data are the same
+                    #and both false
+                    elif not user_likes.likes and not like:
+                        return Response(
+                            {
+                                'detail':'{}, you have already disliked this article.'
+                                .format(request.user.username)
+                            },
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+
+                    #check if the stored data and the request data are different
+                    #one true and the other false
+                    elif like and not user_likes.likes:
+                        user_likes.likes = True
+                        user_likes.save()
+                        article.likes.add(request.user)
+                        article.dislikes.remove(request.user)
+                        article.save()
+                        return Response(
+                            {
+                                'detail': '{}, you have liked this article.'
+                                .format(request.user.username)
+                            }, 
+                            status=status.HTTP_200_OK
+                        )
+
+                    else:
+                        user_likes.likes = False
+                        user_likes.save()
+                        article.likes.remove(request.user)
+                        article.dislikes.add(request.user)
+                        article.save()
+                        return Response(
+                            {
+                                'detail': '{}, you have disliked this article.'
+                                .format(request.user.username)
+                            },
+                            status=status.HTTP_200_OK
+                        )
+
+            except LikesDislikes.DoesNotExist:
+                #Create and save a new like object since one does not exist
+                serializer=self.serializer_class(data=like_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save(article=article, reader=request.user)
+                
+                #if the request data is true, we update the article
+                #with the new data
+                if like:
+                    article.likes.add(request.user)
+                    article.save()
+                    return Response(
+                        {
+                            'detail': '{}, you have liked this article.'
+                            .format(request.user.username)
+                        },
+                        status=status.HTTP_201_CREATED
+                    )
+
+                #if the request data is false, we update the article
+                #with the new data
+                else:
+                    article.dislikes.add(request.user)
+                    article.save()
+                    return Response(
+                        {
+                            'detail': '{}, you have disliked this article.'
+                            .format(request.user.username)
+                        }
+                        , status=status.HTTP_201_CREATED
+                    )
+        else:
+
+            return Response(
+                {
+                    'detail': 'Please indicate whether you like/dislike this article.'
+                }
+                , status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def delete(self, request, slug):
+        #Check if the article exists in the database
+        article = get_article(slug)
+        
+        if isinstance(article, dict):
+            return Response(article, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            #Verify if the instance of the article and the user
+            #exist in the database and get the like
+            user_like = LikesDislikes.objects.get(article=article.id, reader=request.user.id)
+            if user_like:
+                if user_like.likes:
+                    #If like field in the database is true we remove the count
+                    #from the likes field of the article and save the current state
+                    article.likes.remove(request.user)
+                    article.save()
+                else:
+                    #If like field in the database is false we remove the count
+                    #from the dislikes field of the article and save the current state
+                    article.dislikes.remove(request.user)
+                    article.save()
+        except LikesDislikes.DoesNotExist:
+            return Response(
+                {
+                    'detail': 'Likes/dislikes not found.'
+                }
+                , status=status.HTTP_404_NOT_FOUND
+            )
+        user_like.delete()
+        return Response(
+                {
+                    'detail': '{}, your reaction has been deleted successfully.'
+                    .format(request.user.username)
+                }
+                , status=status.HTTP_200_OK
+            )
+

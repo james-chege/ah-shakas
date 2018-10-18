@@ -6,7 +6,7 @@ from authors import settings
 from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.profiles.models import Profile
 from rest_framework.validators import UniqueTogetherValidator
-from .models import ArticlesModel, Rating, Comment, Favourite, Tags
+from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes
 from authors.apps.profiles.serializers import ProfileSerializer
 from authors.apps.articles.relations import TagsRelation
 
@@ -50,6 +50,26 @@ class ArticlesSerializers(serializers.ModelSerializer):
 
     author = serializers.SerializerMethodField(read_only=True)
     rating = serializers.SerializerMethodField()
+
+    likes_count = serializers.IntegerField(
+        read_only=True, 
+        source="likes.count"
+    )
+
+    dislikes_count = serializers.IntegerField(
+        read_only=True,
+        source="dislikes.count"
+    )
+
+    likes_count = serializers.IntegerField(
+        read_only=True, 
+        source="likes.count"
+    )
+
+    dislikes_count = serializers.IntegerField(
+        read_only=True,
+        source="dislikes.count"
+    )
 
     def get_author(self, obj):
         """This method gets the profile object for the article"""
@@ -99,6 +119,8 @@ class ArticlesSerializers(serializers.ModelSerializer):
             'image_url',
             'author',
             'rating',
+            'likes_count',
+            'dislikes_count',
             'created_at',
             'updated_at',
             'favourited'
@@ -218,3 +240,16 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ('article', 'rating', 'avg_rating')
+
+
+class LikesDislikesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LikesDislikes
+        fields = '__all__'
+        validators = [
+            UniqueTogetherValidator(
+                queryset=LikesDislikes.objects.all(),
+                fields = ('article', 'reader'),
+                message = 'You have already liked this article.'
+            )
+        ]

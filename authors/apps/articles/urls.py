@@ -12,4 +12,5 @@ urlpatterns = [
     path('articles/<slug>/rate/', views.RatingDetails.as_view(), name='ratings'),
     path('articles/<slug>/favourite', views.FavouriteGenericAPIView.as_view(), name="favourite"),
     path('tags/', views.TagsView.as_view(), name='tags'),
+    path('articles/<slug>/like/', views.ArticlesLikesDislikes.as_view(),  name='article-like')
 ]

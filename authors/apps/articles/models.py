@@ -15,6 +15,9 @@ class ArticlesModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
     author = models.ForeignKey(User, related_name='article', on_delete=models.CASCADE)
+    likes = models.ManyToManyField(User, blank=True, related_name='LikesDislikes.user+')
+    dislikes = models.ManyToManyField(User, blank=True, related_name='LikesDislikes.user+')
+
 
     def __str__(self):
         return self.title
@@ -82,3 +85,12 @@ class Tags(models.Model):
 
     def __str__(self):
         return self.tag
+
+
+class LikesDislikes(models.Model):
+    article = models.ForeignKey(ArticlesModel, related_name='like' ,on_delete=models.CASCADE)
+    reader = models.ForeignKey(User, related_name='like', on_delete=models.CASCADE)
+    likes = models.BooleanField()
+
+    class Meta:
+        unique_together = ('article', 'reader')

@@ -67,7 +67,6 @@ class BaseTest(APITestCase):
         response = self.client.post(self.login_url, user, format='json')
         token = response.data['token']
         self.client.credentials(HTTP_AUTHORIZATION=token)
-
         return token
 
     def create_and_login_user(self, user=None):
@@ -90,4 +89,4 @@ class BaseTest(APITestCase):
     def single_article_details(self):
         slug = self.create_article()
         url = API_Reverse('articles:article-details', {slug: 'slug'})
-        return url
+        return url       
