@@ -1,3 +1,4 @@
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import (ListCreateAPIView,
                                      RetrieveUpdateDestroyAPIView,
                                      GenericAPIView,
@@ -8,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory
 from .serializers import (ArticlesSerializers,
@@ -17,9 +19,10 @@ from .serializers import (ArticlesSerializers,
                           TagSerializers,
                           LikesDislikesSerializer,
                           CommentHistorySerializer)
+from authors import settings
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
 from .permissions import IsOwnerOrReadonly
-from authors import settings
+from .filters import ArticlesFilter
 
 class StandardPagination(PageNumberPagination):
     page_size = settings.PAGE_SIZE 
@@ -44,6 +47,10 @@ class ArticlesList(ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = StandardPagination
     renderer_classes = (ArticlesRenderer,)
+    filter_backends = (SearchFilter, OrderingFilter, DjangoFilterBackend)
+    filter_class = ArticlesFilter
+    search_fields = ('title', 'description', 'tags__tag', 'author__username')
+    ordering_fields = ('title', 'author__username')
 
     def post(self, request):
         article = request.data.get('article', {})

@@ -76,12 +76,14 @@ class BaseTest(APITestCase):
         self.activate_user(user=user)
         return self.login_user(user=user)
 
-    def create_article(self, token=None):
+    def create_article(self, token=None, article=None):
         if not token:
             self.create_user()
             self.activate_user()
             token = self.login_user()
-        response = self.client.post(self.url, self.article, format='json', HTTP_AUTHORIZATION=token)
+        if not article:
+            article = self.article
+        response = self.client.post(self.url, article, format='json', HTTP_AUTHORIZATION=token)
         slug = response.data['slug']
 
         return slug
