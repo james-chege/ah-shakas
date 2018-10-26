@@ -6,12 +6,13 @@ from rest_framework.generics import (ListCreateAPIView,
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory, CommentLike
+from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory, CommentLike, ArticleStat
 from .serializers import (ArticlesSerializers,
                           CommentsSerializers,
                           RatingSerializer,
@@ -19,7 +20,8 @@ from .serializers import (ArticlesSerializers,
                           TagSerializers,
                           LikesDislikesSerializer,
                           CommentsLikeSerializer,
-                          CommentHistorySerializer)
+                          CommentHistorySerializer,
+                          ArticleStatSerializer)
 from authors import settings
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
 from .permissions import IsOwnerOrReadonly
@@ -72,6 +74,16 @@ class ArticlesDetails(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadonly)
     lookup_field = 'slug'
 
+
+    def get(self, request, slug):
+        article = get_article(slug)
+        if isinstance(article, dict):
+            raise ValidationError(detail={'artcle': 'No article found for the slug given'})
+        if request.user and not isinstance(request.user, AnonymousUser):
+            ArticleStat.objects.create(user=request.user, article=article)
+
+        return super().get(request, slug)
+
     def put(self, request, slug):
         """This method overwrites the """
         article = ArticlesModel.objects.get(slug=slug)
@@ -106,6 +118,17 @@ class TagsView(ListAPIView):
         data = self.get_queryset()
         serializer = self.serializer_class(data, many=True)
         return Response({'tags': serializer.data}, status=status.HTTP_200_OK)
+
+
+class ArticleStatsView(ListAPIView):
+    serializer_class = ArticleStatSerializer
+
+    def get_queryset(self):
+       """
+       This method filters articles by authors
+       """
+       return ArticlesModel.objects.filter(author=self.request.user)
+
 
 
 class RatingDetails(GenericAPIView):

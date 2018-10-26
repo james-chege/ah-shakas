@@ -60,6 +60,7 @@ class BaseTest(APITestCase):
         token = generate_token(user['user']['username'])
         self.client.get(reverse("authentication:verify", args=[token]))
 
+
     def login_user(self, user=None):
         """This will login an existing user"""
         if not user: 

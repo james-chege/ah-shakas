@@ -14,4 +14,5 @@ urlpatterns = [
     path('tags/', views.TagsView.as_view(), name='tags'),
     path('articles/<slug>/like/', views.ArticlesLikesDislikes.as_view(),  name='article-like'),
     path('articles/<slug>/comments/<int:id>/like', views.CommentLikes.as_view(), name='comment-like'),
+    path('articles/statistics/', views.ArticleStatsView.as_view(),  name='stats')
 ]
