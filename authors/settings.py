@@ -207,3 +207,5 @@ DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
 
 #Words per minute(WPM)
 WPM = 250
+PAGE_SIZE = os.getenv("PAGE_SIZE")
+MAX_PAGE_SIZE = os.getenv("MAX_PAGE_SIZE")

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.pagination import PageNumberPagination
 
 
 from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes
@@ -18,7 +19,12 @@ from .serializers import (ArticlesSerializers,
                           LikesDislikesSerializer)
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
 from .permissions import IsOwnerOrReadonly
+from authors import settings
 
+class StandardPagination(PageNumberPagination):
+    page_size = settings.PAGE_SIZE 
+    page_size_query_param = 'page_size'
+    max_page_size = settings.MAX_PAGE_SIZE 
 
 
 def get_article(slug):
@@ -36,6 +42,7 @@ class ArticlesList(ListCreateAPIView):
     queryset = ArticlesModel.objects.all()
     serializer_class = ArticlesSerializers
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = StandardPagination
     renderer_classes = (ArticlesRenderer,)
 
     def post(self, request):
