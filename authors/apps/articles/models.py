@@ -1,3 +1,4 @@
+from rest_framework.reverse import reverse as api_reverse
 from django.db import models
 from django.utils.text import slugify
 
@@ -21,6 +22,9 @@ class ArticlesModel(models.Model):
 
     def __str__(self):
         return self.title
+
+    def api_url(self,request=None):
+        return api_reverse("articles:article-details",kwargs={'slug':self.slug},request=request)
 
     def create_title_slug(self):
         """This method automatically slugs the title before saving"""
