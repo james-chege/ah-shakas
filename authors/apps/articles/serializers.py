@@ -201,7 +201,7 @@ class ArticleStatSerializer(serializers.ModelSerializer):
 
     class Meta:
        model = ArticlesModel
-       fields = ['slug', 'view_count', 'comment_count']
+       fields = ['slug', 'title', 'view_count', 'comment_count']
 
 class CommentsSerializers(serializers.ModelSerializer):
     body = serializers.CharField(
