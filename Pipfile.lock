@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dcce3c745092c42bf055c82b3bcd1d898ddf1a895bfb54afa7f46e1101518d7b"
+            "sha256": "b71e8144e21967f3420c9d51a0c468dce3343b848eaaad32e3f74a5f4db8ed8a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -129,6 +129,14 @@
             ],
             "index": "pypi",
             "version": "==2.1.2"
+        },
+        "django-filter": {
+            "hashes": [
+                "sha256:6f4e4bc1a11151178520567b50320e5c32f8edb552139d93ea3e30613b886f56",
+                "sha256:86c3925020c27d072cdae7b828aaa5d165c2032a629abbe3c3a1be1edae61c58"
+            ],
+            "index": "pypi",
+            "version": "==2.0.0"
         },
         "django-heroku": {
             "hashes": [
@@ -371,7 +379,6 @@
                 "sha256:99dcfdaaeb17caf6e526f32b6a7b780461512ab3f1d992187801694cba42770c",
                 "sha256:a84b8c9ab6239b578f22d1c21d51b696dcfe004032bb80ea832398d6909d7279"
             ],
-            "markers": "python_version != '3.3.*' and python_version != '3.1.*' and python_version != '3.2.*' and python_version != '3.0.*' and python_version < '4' and python_version >= '2.7'",
             "version": "==2.20.0"
         },
         "requests-oauthlib": {
@@ -379,7 +386,6 @@
                 "sha256:8886bfec5ad7afb391ed5443b1f697c6f4ae98d0e5620839d8b4499c032ada3f",
                 "sha256:e21232e2465808c0e892e0e4dbb8c2faafec16ac6dc067dd546e9b466f3deac8"
             ],
-            "markers": "python_version != '3.3.*' and python_version != '3.1.*' and python_version != '3.2.*' and python_version != '3.0.*' and python_version < '4' and python_version >= '2.7'",
             "version": "==1.0.0"
         },
         "simplejson": {
