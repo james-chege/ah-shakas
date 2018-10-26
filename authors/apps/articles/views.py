@@ -9,14 +9,14 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.pagination import PageNumberPagination
 
-
-from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes
+from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory
 from .serializers import (ArticlesSerializers,
                           CommentsSerializers,
                           RatingSerializer,
                           FavouriteSerializer,
                           TagSerializers,
-                          LikesDislikesSerializer)
+                          LikesDislikesSerializer,
+                          CommentHistorySerializer)
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
 from .permissions import IsOwnerOrReadonly
 from authors import settings
@@ -304,10 +304,21 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
         if not comment:
             message = {'detail': 'Comment not found.'}
             return Response(message, status=status.HTTP_404_NOT_FOUND)
+        new_body = request.data.get('comment',{}).get('body', None)
         
-        new_comment = request.data.get('comment',{}).get('body', None)
+        # Check if no edit was made, if it was, we want to
+        # save the previous comment as history...
+        if comment.body != new_body:
+            history_data = {
+                'body': comment.body,
+                'parent': comment.id
+            }
+            history_serializer = CommentHistorySerializer(data=history_data)
+            history_serializer.is_valid(raise_exception=True)
+            history_serializer.save()
+
         data = {
-            'body': new_comment,
+            'body': new_body,
             'article': article.pk,
             'author': request.user.id
         }

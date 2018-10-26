@@ -1,15 +1,11 @@
 from rest_framework import status
-from rest_framework.reverse import reverse as API_Reverse
-from rest_framework.test import APITestCase, APIClient
-
-from authors.apps.articles.tests.base_tests import BaseTest
-
+from authors.apps.articles.tests.base_tests import BaseTest, API_Reverse, APITestCase, APIClient
 
 class CommentsTests(BaseTest):
     """
     Comments test cases
     """
-    
+
     def create_comment(self):
         slug = self.create_article()
         url = API_Reverse('articles:comments', {slug: 'slug'})
@@ -40,7 +36,7 @@ class CommentsTests(BaseTest):
         response, url = self.create_comment()
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    
+
     def test_unauthorised_users_can_view_comments(self):
         """
         Test any user can view somments
@@ -48,7 +44,7 @@ class CommentsTests(BaseTest):
         response, url = self.create_comment()
         response = self.unauthorised_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    
+
     def test_can_view_single_comment(self):
         """
         Test users can view a single comment
@@ -60,7 +56,7 @@ class CommentsTests(BaseTest):
         url = API_Reverse('articles:comment-details', {slug: 'slug', id: 'id'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    
+
     def test_can_thread_a_comment(self):
         """
         Test users can thread a comment
@@ -84,7 +80,7 @@ class CommentsTests(BaseTest):
         url = API_Reverse('articles:comment-details', {slug: 'slug', id: 'id'})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
     def test_unauthenticated_user_cannot_delete_comment(self):
         """
         Test non-owners of comments cannot delete comments
@@ -108,7 +104,7 @@ class CommentsTests(BaseTest):
         url = API_Reverse('articles:comment-details', {slug: 'slug', id: 'id'})
         response = self.client.put(url, data={'comment': {'body': 'New comment'}}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
     def test_unauthenticated_user_cannot_update_comment(self):
         """
         Test non-owners of comments cannot update comments

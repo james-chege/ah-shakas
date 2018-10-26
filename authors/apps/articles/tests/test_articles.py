@@ -1,9 +1,8 @@
-from rest_framework.reverse import reverse as API_Reverse
 from rest_framework import status
 import json
 
 from authors.apps.articles.helpers import get_time_to_read_article
-from authors.apps.articles.tests.base_tests import BaseTest
+from authors.apps.articles.tests.base_tests import BaseTest, API_Reverse
 from authors.apps.articles.models import ArticlesModel
 
 
