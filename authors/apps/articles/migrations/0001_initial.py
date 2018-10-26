@@ -105,6 +105,15 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='ReportArticles',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('report_msg', models.CharField(max_length=250)),
+                ('article', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='articles.ArticlesModel', to_field='slug')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, to_field='email')),
+            ],
+        ),
+        migrations.CreateModel(
             name='Tags',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

@@ -1,8 +1,13 @@
+import os
+
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import (ListCreateAPIView,
                                      RetrieveUpdateDestroyAPIView,
                                      GenericAPIView,
-                                     ListAPIView)
+                                     ListAPIView, CreateAPIView)
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
@@ -12,7 +17,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory, CommentLike, ArticleStat
+from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory, CommentLike, ArticleStat, ReportArticles
 from .serializers import (ArticlesSerializers,
                           CommentsSerializers,
                           RatingSerializer,
@@ -21,17 +26,18 @@ from .serializers import (ArticlesSerializers,
                           LikesDislikesSerializer,
                           CommentsLikeSerializer,
                           CommentHistorySerializer,
+                          ReportArticlesSerializer,
                           ArticleStatSerializer)
 from authors import settings
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
 from .permissions import IsOwnerOrReadonly
 from .filters import ArticlesFilter
 
-class StandardPagination(PageNumberPagination):
-    page_size = settings.PAGE_SIZE 
-    page_size_query_param = 'page_size'
-    max_page_size = settings.MAX_PAGE_SIZE 
 
+class StandardPagination(PageNumberPagination):
+    page_size = settings.PAGE_SIZE
+    page_size_query_param = 'page_size'
+    max_page_size = settings.MAX_PAGE_SIZE
 
 def get_article(slug):
     """
@@ -43,6 +49,7 @@ def get_article(slug):
         return message
     # queryset always has 1 thing as long as it is unique
     return article
+
 
 class ArticlesList(ListCreateAPIView):
     queryset = ArticlesModel.objects.all()
@@ -128,7 +135,6 @@ class ArticleStatsView(ListAPIView):
        This method filters articles by authors
        """
        return ArticlesModel.objects.filter(author=self.request.user)
-
 
 
 class RatingDetails(GenericAPIView):
@@ -339,7 +345,7 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
             message = {'detail': 'Comment not found.'}
             return Response(message, status=status.HTTP_404_NOT_FOUND)
         new_body = request.data.get('comment',{}).get('body', None)
-        
+
         # Check if no edit was made, if it was, we want to
         # save the previous comment as history...
         if comment.body != new_body:
@@ -361,6 +367,7 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
 
 class FavouriteGenericAPIView(APIView):
     serializer_class = FavouriteSerializer
@@ -417,7 +424,7 @@ class ArticlesLikesDislikes(GenericAPIView):
     """
     Class for creating and deleting article likes/dislikes
     """
-    
+
     queryset = LikesDislikes.objects.all()
     serializer_class = LikesDislikesSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadonly)
@@ -426,7 +433,7 @@ class ArticlesLikesDislikes(GenericAPIView):
     def post(self, request, slug):
         #Check if the article exists in the database
         article = get_article(slug)
-        
+
         if isinstance(article, dict):
             return Response(article, status=status.HTTP_404_NOT_FOUND)
 
@@ -487,7 +494,7 @@ class ArticlesLikesDislikes(GenericAPIView):
                             {
                                 'detail': '{}, you have liked this article.'
                                 .format(request.user.username)
-                            }, 
+                            },
                             status=status.HTTP_200_OK
                         )
 
@@ -510,7 +517,7 @@ class ArticlesLikesDislikes(GenericAPIView):
                 serializer=self.serializer_class(data=like_data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save(article=article, reader=request.user)
-                
+
                 #if the request data is true, we update the article
                 #with the new data
                 if like:
@@ -548,7 +555,7 @@ class ArticlesLikesDislikes(GenericAPIView):
     def delete(self, request, slug):
         #Check if the article exists in the database
         article = get_article(slug)
-        
+
         if isinstance(article, dict):
             return Response(article, status=status.HTTP_404_NOT_FOUND)
 
@@ -588,18 +595,18 @@ class CommentLikes(GenericAPIView):
     """
     Class for liking an unliking comments
     """
-    
+
     queryset = CommentLike.objects.all()
     serializer_class = CommentsLikeSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadonly)
 
     def post(self, request, slug, id):
         #Check if a comment exists in the database
-        
-        comment = Comment.objects.filter(id=id).first() 
+
+        comment = Comment.objects.filter(id=id).first()
 
         like = request.data.get('comment_likes', None)
-      
+
         #Check if the data in the request a valid boolean
         if type(like) == bool:
 
@@ -643,7 +650,7 @@ class CommentLikes(GenericAPIView):
                             {
                                 'detail': '{}, you have liked this comment.'
                                 .format(request.user.username)
-                            }, 
+                            },
                             status=status.HTTP_200_OK
                         )
 
@@ -652,7 +659,7 @@ class CommentLikes(GenericAPIView):
                 serializer=self.serializer_class(data=like_data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save(specific_comment=comment, commentor=request.user)
-                
+
                 #if the request data is true, we update the article
                 #with the new data
                 if like:
@@ -679,8 +686,8 @@ class CommentLikes(GenericAPIView):
 
     def delete(self, request, slug, id):
         #Check if the comment exists in the database
-        
-        comment = Comment.objects.filter(id=id).first() 
+
+        comment = Comment.objects.filter(id=id).first()
         if isinstance(comment, dict):
             return Response(comment, status=status.HTTP_404_NOT_FOUND)
 
@@ -694,7 +701,7 @@ class CommentLikes(GenericAPIView):
                     #from the likes field of the article and save the current state
                     comment.comment_likes.remove(request.user)
                     comment.save()
-                
+
         except CommentLike.DoesNotExist:
             return Response(
                 {
@@ -710,4 +717,69 @@ class CommentLikes(GenericAPIView):
                 }
                 , status=status.HTTP_200_OK
             )
+
+
+class ReportArticlesView(ListCreateAPIView):
+    queryset = ReportArticles.objects.all()
+    serializer_class = ReportArticlesSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def post(self, request, slug):
+        # Checks if there is an article with that slug
+        article = get_article(slug=slug)
+        if isinstance(article, dict):
+            # if the article does not exist an error is returned
+            return Response(article, status=status.HTTP_404_NOT_FOUND)
+        if article:
+            # checks if the author is trying to report the article
+            if article.author == request.user:
+                return Response(
+                    {"errors": "You cannot report your own article"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                # gets the article, user and report_msg
+                article_report = article
+                user_report = request.user
+                report_msg = request.data.get('report', {}).get('report_msg', {})
+                no_of_reports = ReportArticles.objects.filter(
+                    article=article_report, user=user_report
+                ).count()
+                # checks how many times users has reported and returns an error
+                if no_of_reports > 2:
+                    return Response(
+                        {"errors": "You cannot report this article multiple times"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                report = {
+                    'article': article.slug,
+                    'user': request.user,
+                    'report_msg': report_msg
+                }
+                # creates an instance of the report
+                serializer = self.serializer_class(data=report)
+                serializer.is_valid(raise_exception=True)
+                # Send mail to Admin before saving the serialized object
+                current_domain = settings.DEFAULT_DOMAIN
+                url = current_domain + "/api/verify/" + str(article.slug)
+                email = os.getenv('ADMIN_EMAIL')
+                body = render_to_string('report.html', {
+                    'link': url,
+                    'name': request.user.username,
+                    'report': report_msg
+                })
+                send_mail(
+                    'A user has reported an article',
+                    'View reported article',
+                    'no-reply@authors-heaven.com',
+                    [email],
+                    html_message=body,
+                    fail_silently=False,
+                )
+                content = "An email has been sent to the admin with your request"
+                message = {"message": content}
+                serializer.save()
+                return Response(message, status=status.HTTP_200_OK)
+
+
 

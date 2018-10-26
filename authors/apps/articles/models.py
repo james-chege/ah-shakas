@@ -1,4 +1,5 @@
 from rest_framework.reverse import reverse as api_reverse
+
 from django.db import models
 from django.utils.text import slugify
 
@@ -18,7 +19,6 @@ class ArticlesModel(models.Model):
     author = models.ForeignKey(User, related_name='article', on_delete=models.CASCADE)
     likes = models.ManyToManyField(User, blank=True, related_name='LikesDislikes.user+')
     dislikes = models.ManyToManyField(User, blank=True, related_name='LikesDislikes.user+')
-
 
     def __str__(self):
         return self.title
@@ -113,11 +113,11 @@ class CommentHistory(models.Model):
 
     body = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
-    parent = models.ForeignKey( 
-        Comment, 
-        null=False, 
-        blank=False, 
-        related_name='history', 
+    parent = models.ForeignKey(
+        Comment,
+        null=False,
+        blank=False,
+        related_name='history',
         on_delete=models.CASCADE
     )
 
@@ -134,3 +134,10 @@ class CommentLike(models.Model):
 
     class Meta:
         unique_together = ('specific_comment','commentor')
+
+
+class ReportArticles(models.Model):
+    """This class creates models for reporting articles"""
+    article = models.ForeignKey(ArticlesModel, to_field='slug', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, to_field='email', on_delete=models.CASCADE)
+    report_msg = models.CharField(null=False, max_length=250)

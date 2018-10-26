@@ -6,10 +6,9 @@ from authors import settings
 from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.profiles.models import Profile
 from rest_framework.validators import UniqueTogetherValidator
-from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike, ArticleStat
+from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike, CommentHistory, ReportArticles, ArticleStat
 from authors.apps.profiles.serializers import ProfileSerializer
 from authors.apps.articles.relations import TagsRelation
-from .models import ArticlesModel, Rating, Comment, Favourite, CommentHistory
 
 
 class ArticlesSerializers(serializers.ModelSerializer):
@@ -67,7 +66,6 @@ class ArticlesSerializers(serializers.ModelSerializer):
         read_only=True,
         source="dislikes.count"
     )
-
 
     def get_author(self, obj):
         """This method gets the profile object for the article"""
@@ -127,7 +125,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
         request = self.context.get("request")
         return  'mailto:?subject=New Article Alert&body={}'.format(
                     obj.api_url(request=request))
-    
+
     class Meta:
         model = ArticlesModel
         fields = (
@@ -225,7 +223,6 @@ class CommentsSerializers(serializers.ModelSerializer):
     def format_date(self, date):
         return date.strftime('%d %b %Y %H:%M:%S')
 
-
     def to_representation(self,instance):
        """
        overide representation for custom output
@@ -258,15 +255,15 @@ class CommentsSerializers(serializers.ModelSerializer):
     class Meta:
        model = Comment
        fields = (
-           'id', 
-           'body', 
-           'created_at', 
-           'updated_at', 
-           'author', 
-           'article', 
+           'id',
+           'body',
+           'created_at',
+           'updated_at',
+           'author',
+           'article',
            'parent',
            'history'
-       )  
+       )
         
 
 class RatingSerializer(serializers.ModelSerializer):
@@ -318,7 +315,7 @@ class LikesDislikesSerializer(serializers.ModelSerializer):
                 message = 'You have already liked this article.'
             )
         ]
-       
+
 
 class CommentHistorySerializer(serializers.ModelSerializer):
     body = serializers.CharField(
@@ -334,6 +331,7 @@ class CommentHistorySerializer(serializers.ModelSerializer):
         model = CommentHistory
         fields = ('body', 'parent', 'created_at')
 
+
 class CommentsLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentLike
@@ -345,3 +343,11 @@ class CommentsLikeSerializer(serializers.ModelSerializer):
                 message = 'You have already liked this comment.'
             )
         ]
+
+
+class ReportArticlesSerializer(serializers.ModelSerializer):
+    """This class adds a model serializer for reporting article"""
+    class Meta:
+        model = ReportArticles
+        fields = ('article', 'user', 'report_msg')
+
