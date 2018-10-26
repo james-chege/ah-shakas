@@ -11,13 +11,14 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory
+from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory, CommentLike
 from .serializers import (ArticlesSerializers,
                           CommentsSerializers,
                           RatingSerializer,
                           FavouriteSerializer,
                           TagSerializers,
                           LikesDislikesSerializer,
+                          CommentsLikeSerializer,
                           CommentHistorySerializer)
 from authors import settings
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
@@ -554,6 +555,134 @@ class ArticlesLikesDislikes(GenericAPIView):
         return Response(
                 {
                     'detail': '{}, your reaction has been deleted successfully.'
+                    .format(request.user.username)
+                }
+                , status=status.HTTP_200_OK
+            )
+
+
+class CommentLikes(GenericAPIView):
+    """
+    Class for liking an unliking comments
+    """
+    
+    queryset = CommentLike.objects.all()
+    serializer_class = CommentsLikeSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadonly)
+
+    def post(self, request, slug, id):
+        #Check if a comment exists in the database
+        
+        comment = Comment.objects.filter(id=id).first() 
+
+        like = request.data.get('comment_likes', None)
+      
+        #Check if the data in the request a valid boolean
+        if type(like) == bool:
+
+            #Check if the comment belongs to the current user
+            if comment.author == request.user:
+                message = {'detail': 'You cannot like/unlike your own comment'}
+                return Response(message, status=status.HTTP_400_BAD_REQUEST)
+            like_data = {
+                'commentor': request.user.id,
+                'specific_comment': comment.id,
+                'comment_likes': like
+            }
+
+            try:
+                #Verify if the instance of the comment and the user
+                #exist in the database and get the like
+                user_likes = CommentLike.objects.get(specific_comment=comment.id, commentor=request.user.id)
+
+                #if an instance of the user and comment both exist in the database
+                #we update the existing data instead of creating a new one
+                if user_likes:
+                    #check if the stored data and the request data are the same
+                    #and both true
+                    if user_likes.comment_likes and like:
+                        return Response(
+                            {
+                                'detail':'{}, you have already liked this comment.'
+                                .format(request.user.username)
+                            },
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+
+                    #check if the stored data and the request data are different
+                    #one true and the other false
+                    elif like and not user_likes.comment_likes:
+                        user_likes.comment_likes = True
+                        user_likes.save()
+                        comment.comment_likes.add(request.user)
+                        comment.save()
+                        return Response(
+                            {
+                                'detail': '{}, you have liked this comment.'
+                                .format(request.user.username)
+                            }, 
+                            status=status.HTTP_200_OK
+                        )
+
+            except CommentLike.DoesNotExist:
+                #Create and save a new like object since one does not exist
+                serializer=self.serializer_class(data=like_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save(specific_comment=comment, commentor=request.user)
+                
+                #if the request data is true, we update the article
+                #with the new data
+                if like:
+                    comment.comment_likes.add(request.user)
+                    comment.save()
+                    return Response(
+                        {
+                            'detail': '{}, you have liked this comment.'
+                            .format(request.user.username)
+                        },
+                        status=status.HTTP_201_CREATED
+                    )
+
+                #if the request data is false, we update the article
+                #with the new data
+        else:
+
+            return Response(
+                {
+                    'detail': 'Please indicate whether you likethis article.'
+                }
+                , status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def delete(self, request, slug, id):
+        #Check if the comment exists in the database
+        
+        comment = Comment.objects.filter(id=id).first() 
+        if isinstance(comment, dict):
+            return Response(comment, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            #Verify if the instance of the comment and the user
+            #exist in the database and get the like
+            user_like = CommentLike.objects.get(specific_comment=comment.id, commentor=request.user.id)
+            if user_like:
+                if user_like.comment_likes:
+                    #If like field in the database is true we remove the count
+                    #from the likes field of the article and save the current state
+                    comment.comment_likes.remove(request.user)
+                    comment.save()
+                
+        except CommentLike.DoesNotExist:
+            return Response(
+                {
+                    'detail': 'Likes not found.'
+                }
+                , status=status.HTTP_404_NOT_FOUND
+            )
+        user_like.delete()
+        return Response(
+                {
+                    'detail': '{}, your like has been deleted successfully.'
                     .format(request.user.username)
                 }
                 , status=status.HTTP_200_OK

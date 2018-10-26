@@ -57,6 +57,7 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
     article = models.ForeignKey(ArticlesModel, related_name='comments', on_delete=models.CASCADE)
+    comment_likes = models.ManyToManyField(User, blank=True, related_name='LikeComment')
     parent = models.ForeignKey(
         'self',
         null=True,
@@ -118,3 +119,11 @@ class CommentHistory(models.Model):
 
     class Meta:
         ordering = ('created_at',)
+
+class CommentLike(models.Model):
+    specific_comment = models.ForeignKey(Comment,related_name='comment_like', on_delete=models.CASCADE)
+    commentor = models.ForeignKey(User, related_name='comment_like', on_delete=models.CASCADE)
+    comment_likes = models.BooleanField()
+
+    class Meta:
+        unique_together = ('specific_comment','commentor')
