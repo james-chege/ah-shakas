@@ -13,6 +13,12 @@ from .models import ArticlesModel, Rating, Comment, Favourite, CommentHistory
 
 
 class ArticlesSerializers(serializers.ModelSerializer):
+    #add return fields
+    url = serializers.SerializerMethodField(read_only=True)
+    facebook = serializers.SerializerMethodField(read_only=True)
+    Linkedin= serializers.SerializerMethodField(read_only=True)
+    twitter= serializers.SerializerMethodField(read_only=True)
+    mail= serializers.SerializerMethodField(read_only=True)
     title = serializers.CharField(
         required=True,
         max_length=128,
@@ -109,13 +115,40 @@ class ArticlesSerializers(serializers.ModelSerializer):
        representation['time_to_read'] = get_time_to_read_article(instance)
        return representation
 
+
+    def get_url(self,obj):
+        request = self.context.get("request")
+        return obj.api_url(request=request)
+
+    def get_facebook(self,obj):
+        request = self.context.get("request")
+        return 'http://www.facebook.com/sharer.php?u='+obj.api_url(request=request)
+
+    def get_Linkedin(self,obj):
+        request = self.context.get("request")
+        return 'http://www.linkedin.com/shareArticle?mini=true&amp;url='+obj.api_url(request=request)
+
+    def get_twitter(self,obj):
+        request = self.context.get("request")
+        return 'https://twitter.com/share?url='+obj.api_url(request=request)+'&amp;text=Amazing Read'
+
+    def get_mail(self,obj):
+        request = self.context.get("request")
+        return  'mailto:?subject=New Article Alert&body={}'.format(
+                    obj.api_url(request=request))
+    
     class Meta:
         model = ArticlesModel
         fields = (
             'title',
             'description',
             'body',
+            'facebook',
+            'Linkedin',
+            'twitter',
+            'mail',
             'slug',
+            'url',
             'tags',
             'image_url',
             'author',

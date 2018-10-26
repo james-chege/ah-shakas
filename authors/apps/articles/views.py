@@ -85,6 +85,9 @@ class ArticlesDetails(RetrieveUpdateDestroyAPIView):
         super().delete(self, request, slug)
         return Response({"message": "Article Deleted Successfully"})
 
+    def get_serializer_context(self,*args,**kwargs):
+        return {"request":self.request}
+
 
 class TagsView(ListAPIView):
     queryset = Tags.objects.all()
