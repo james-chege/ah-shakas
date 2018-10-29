@@ -1,10 +1,7 @@
-import copy
-from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework.reverse import reverse as api_reverse
 from rest_framework import status
 
-from authors import settings
 from .base_tests import BaseTest
 
 class LikesDislikesTests(BaseTest):
@@ -14,7 +11,7 @@ class LikesDislikesTests(BaseTest):
 
     def setUp(self):
         """
-        Setup the user, rating and article for the tests
+        Setup the user, likes and article for the tests
         """
         super().setUp()
         self.like =  {
@@ -34,7 +31,6 @@ class LikesDislikesTests(BaseTest):
         }
         
         self.author_token = self.create_and_login_user()
-        self.article_slug = self.create_article(token=self.author_token)
 
         self.slug = self.create_article()
         self.article_url = api_reverse('articles:article-details', {self.slug: 'slug'})

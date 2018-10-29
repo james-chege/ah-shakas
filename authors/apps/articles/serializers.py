@@ -6,7 +6,7 @@ from authors import settings
 from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.profiles.models import Profile
 from rest_framework.validators import UniqueTogetherValidator
-from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike, CommentHistory, ReportArticles, ArticleStat
+from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike, CommentHistory, ReportArticles, ArticleStat, Highlighted
 from authors.apps.profiles.serializers import ProfileSerializer
 from authors.apps.articles.relations import TagsRelation
 
@@ -47,7 +47,8 @@ class ArticlesSerializers(serializers.ModelSerializer):
 
     def get_favourited(self, obj):
         try:
-            favourite = Favourite.objects.get(user=self.context["request"].user.id, article=obj.id)
+            favourite = Favourite.objects.get(
+                user=self.context["request"].user.id, article=obj.id)
             return True
         except:
             return False
@@ -58,7 +59,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
 
     likes_count = serializers.IntegerField(
-        read_only=True, 
+        read_only=True,
         source="likes.count"
     )
 
@@ -69,17 +70,19 @@ class ArticlesSerializers(serializers.ModelSerializer):
 
     def get_author(self, obj):
         """This method gets the profile object for the article"""
-        serializer = ProfileSerializer(instance=Profile.objects.get(user=obj.author))
+        serializer = ProfileSerializer(
+            instance=Profile.objects.get(user=obj.author))
         return serializer.data
 
     def get_rating(self, obj):
         """This method gets and returns the rating for the article"""
 
         # Get average rating
-        avg_rating = Rating.objects.filter(article=obj.id).aggregate(Avg('rating'))
+        avg_rating = Rating.objects.filter(
+            article=obj.id).aggregate(Avg('rating'))
 
         # Check that this user is authenticated in order to include their rating,
-        # if not, we return the default rating 
+        # if not, we return the default rating
         user = self.context["request"].user
         if user.is_authenticated:
             try:
@@ -96,13 +99,14 @@ class ArticlesSerializers(serializers.ModelSerializer):
             'avg_rating': avg_rating['rating__avg']
         }
 
-    def to_representation(self,instance):
-       """
-       overide representatiom for custom output
-       """
-       representation = super(ArticlesSerializers, self).to_representation(instance)
-       representation['time_to_read'] = get_time_to_read_article(instance)
-       return representation
+    def to_representation(self, instance):
+        """
+        overide representatiom for custom output
+        """
+        representation = super(ArticlesSerializers,
+                               self).to_representation(instance)
+        representation['time_to_read'] = get_time_to_read_article(instance)
+        return representation
 
 
     def get_url(self,obj):
@@ -174,12 +178,12 @@ class FavouriteSerializer(serializers.ModelSerializer):
     '''serializer for favouriting'''
     class Meta:
         model = Favourite
-        fields=('article', 'user')
+        fields = ('article', 'user')
         validators = [
             UniqueTogetherValidator(
                 queryset=Favourite.objects.all(),
                 fields=('article', 'user'),
-                message = "You have already favourited this article"
+                message="You have already favourited this article"
             )
         ]
 
@@ -203,11 +207,11 @@ class ArticleStatSerializer(serializers.ModelSerializer):
 
 class CommentsSerializers(serializers.ModelSerializer):
     body = serializers.CharField(
-       max_length = 200,
-       required = True,
-       error_messages = {
-           'required': 'Comments field cannot be blank'
-       }
+        max_length=200,
+        required=True,
+        error_messages={
+            'required': 'Comments field cannot be blank'
+        }
     )
 
     history = serializers.SerializerMethodField()
@@ -272,11 +276,13 @@ class RatingSerializer(serializers.ModelSerializer):
         validators=[
             MinValueValidator(
                 settings.RATING_MIN,
-                message='Rating cannot be less than ' + str(settings.RATING_MIN)
+                message='Rating cannot be less than ' +
+                str(settings.RATING_MIN)
             ),
             MaxValueValidator(
                 settings.RATING_MAX,
-                message='Rating cannot be more than ' + str(settings.RATING_MAX)
+                message='Rating cannot be more than ' +
+                str(settings.RATING_MAX)
             )
         ],
         error_messages={
@@ -288,7 +294,8 @@ class RatingSerializer(serializers.ModelSerializer):
     article = serializers.SerializerMethodField()
 
     def get_avg_rating(self, obj):
-        avg = Rating.objects.filter(article=obj.article.id).aggregate(Avg('rating'))
+        avg = Rating.objects.filter(
+            article=obj.article.id).aggregate(Avg('rating'))
         return avg['rating__avg']
 
     def get_article(self, obj):
@@ -311,8 +318,62 @@ class LikesDislikesSerializer(serializers.ModelSerializer):
         validators = [
             UniqueTogetherValidator(
                 queryset=LikesDislikes.objects.all(),
-                fields = ('article', 'reader'),
-                message = 'You have already liked this article.'
+                fields=('article', 'reader'),
+                message='You have already liked this article.'
+            )
+        ]
+
+
+class HighlightedSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(
+        max_length=200,
+        required=True,
+        error_messages={
+            'required': 'Author field cannot be blank'
+        }
+    )
+
+    snippet = serializers.CharField(
+        required=True,
+        error_messages={
+            'required': 'Highlighted snippet field cannot be blank'
+        }
+    )
+
+    comment = serializers.CharField(
+        max_length=200,
+        required=False
+    )
+
+    index = serializers.IntegerField(
+        required=True,
+        error_messages={
+            'required': 'Highlighted snippet index field cannot be blank'
+        }
+    )
+
+    def to_representation(self, instance):
+        """
+        overide representation for custom output
+        """
+
+        representation = super(HighlightedSerializer,
+                               self).to_representation(instance)
+        representation.update({
+            'author': instance.author.username,
+            'article': instance.article.slug
+        })
+
+        return representation
+
+    class Meta:
+        model = Highlighted
+        fields = ('author', 'article', 'snippet', 'comment', 'index', "id")
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Highlighted.objects.all(),
+                fields=('author', 'article', 'snippet', 'index'),
+                message="This highlight has already been made."
             )
         ]
 

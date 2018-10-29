@@ -16,4 +16,7 @@ urlpatterns = [
     path('articles/<slug>/comments/<int:id>/like', views.CommentLikes.as_view(), name='comment-like'),
     path('articles/<slug>/report/', views.ReportArticlesView.as_view(), name='report'),
     path('articles/statistics/', views.ArticleStatsView.as_view(),  name='stats'),
+    path('articles/<slug>/highlight/', views.HighlightedDetails.as_view(), name='highlighted'),
+    path('articles/<slug>/highlight/<int:id>', views.HighlightedDetails.as_view(), name='highlighted'),
+
 ]

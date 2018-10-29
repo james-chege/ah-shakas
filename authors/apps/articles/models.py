@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.text import slugify
 
 from authors.apps.authentication.models import User
+from authors.apps.core.models import TimeStampedModel
 
 
 class ArticlesModel(models.Model):
@@ -79,6 +80,12 @@ class Comment(models.Model):
     class Meta:
         ordering = ('-created_at',)
 
+class Highlighted(TimeStampedModel):
+    author = models.ForeignKey(User, related_name='highlights', on_delete=models.CASCADE)
+    article = models.ForeignKey(ArticlesModel, related_name='highlights', on_delete=models.CASCADE)
+    comment = models.CharField(max_length=200, blank=True)
+    snippet = models.TextField(blank=False)
+    index = models.IntegerField(blank=False)
 
 class Rating(models.Model):
     user = models.ForeignKey(User, related_name='rating', on_delete=models.CASCADE)
@@ -87,7 +94,7 @@ class Rating(models.Model):
 
 
 class Favourite(models.Model):
-    '''model for favourating articles'''
+    """model for favourating articles"""
     article = models.ForeignKey(ArticlesModel, related_name="favourited", on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="favourites", on_delete=models.CASCADE)
 
