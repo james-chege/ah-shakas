@@ -48,3 +48,15 @@ class AccountVerification(APITestCase):
         user = User.objects.get(username=user['username'])
         self.assertTrue(user.is_active)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_fail_verification(self):
+        """
+        Test for user verification failure
+        :return:
+        """
+        self.client.post(self.registration_url, self.user_data, format='json')
+        user = self.user_data['user']
+        token = generate_token(user['username'])
+        response = self.client.get(reverse("authentication:verify", args=[token+"invalid"]))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(b'Invalid', response.content)

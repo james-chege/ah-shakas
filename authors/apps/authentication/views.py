@@ -115,16 +115,16 @@ class VerifyAPIView(APIView):
     """
     permission_classes = (AllowAny,)
     def get(self, request, token):
-        username = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
-        user_in_db = User.objects.get(username = username['username'])
         try:
+            username = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
+            user_in_db = User.objects.get(username=username['username'])
             user_in_db.is_active = True
             user_in_db.save()
-            return Response(data = {"Message": "Congratulations! You have successfully activated your account."}, 
+            return Response(data={"Message": "Congratulations! You have successfully activated your account."},
                             status=status.HTTP_200_OK)
         except:
             return Response(data={"Message": "Invalid link"},
-                status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST)
 class EmailSentAPIView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
@@ -178,9 +178,9 @@ class PasswordResetAPIView(generics.CreateAPIView):
             return Response({"message":"invalid token"}, status=status.HTTP_400_BAD_REQUEST)
         password = request.data.get('password', {})
         email = token_data['email']
-        data={
-            "email":email,
-            "password":password
+        data = {
+            "email": email,
+            "password": password
             }
         try:
             user = User.objects.get(email=email)
@@ -196,7 +196,7 @@ class PasswordResetAPIView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user.set_password(password)
         user.save()
-        return Response({"message":"password successfully changed"}, status=status.HTTP_200_OK)
+        return Response({"message": "password successfully changed"}, status=status.HTTP_200_OK)
 
 
 class SocialSignUp(CreateAPIView):

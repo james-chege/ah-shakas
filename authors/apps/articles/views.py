@@ -13,9 +13,12 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.response import Response
 from django.contrib.auth.models import AnonymousUser
 from rest_framework import status
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
+from django.conf import settings
 
 from .models import ArticlesModel, Comment, Rating, Favourite, Tags, LikesDislikes, CommentHistory, CommentLike, ArticleStat, ReportArticles
 from .serializers import (ArticlesSerializers,
@@ -30,8 +33,17 @@ from .serializers import (ArticlesSerializers,
                           ArticleStatSerializer)
 from authors import settings
 from .renderers import ArticlesRenderer, RatingJSONRenderer, FavouriteJSONRenderer
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+
 from .permissions import IsOwnerOrReadonly
+from .models import ArticlesModel
+from .serializers import ArticlesSerializers
+from .renderers import ArticlesRenderer
+from authors.apps.notifications.models import UserNotifications
 from .filters import ArticlesFilter
+from authors.apps.profiles.models import Profile
+from authors.apps.authentication.models import User
 
 
 class StandardPagination(PageNumberPagination):
@@ -65,14 +77,59 @@ class ArticlesList(ListCreateAPIView):
     def post(self, request):
         article = request.data.get('article', {})
         serializer = self.serializer_class(
-            data=article, 
+            data=article,
             context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save(author=request.user)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
+
+@receiver(post_save, sender=ArticlesModel)
+# This receiver handles notification creation immediately a new article is created.
+def notification(sender, instance=None, created=None, **kwargs):
+    """
+    Sends notification
+    """
+    if created == True:
+        username = instance.author.username
+        author = instance.author
+        title = instance.title
+        # domain for the application
+        current_domain = settings.DEFAULT_DOMAIN
+
+        # create a link for to the article
+        url = (current_domain + "/api/articles/" + str(instance.slug))
+        # get the followers
+        profile = author.profile
+        followers = profile.is_following.all()
+
+        # send notification
+        for follower in followers:
+            subscription = User.objects.get(username=follower).is_subcribed
+            if subscription == True:
+                follower_email = User.objects.get(username=follower)
+                email = str(follower_email)
+                notification = (username + " created a new article about " + title)
+                UserNotifications.objects.create(article=instance,
+                    notification = notification, author_id=instance.author.id, recipient_id=email, article_link=url)
+                name = User.objects.get(username=follower).username
+                # send email notification
+                body = render_to_string('notification.html', {
+                    'url': url,
+                    'notification': notification,
+                    'name': name
+                })
+                send_mail(
+                    'You have a new notification',
+                    'You have a new notification from authors haven',
+                    'authors-haven@authors-heaven.com',
+                    [email],
+                    html_message=body,
+                    fail_silently=False,
+                )
+
 
 class ArticlesDetails(RetrieveUpdateDestroyAPIView):
     queryset = ArticlesModel.objects.all()
@@ -96,9 +153,9 @@ class ArticlesDetails(RetrieveUpdateDestroyAPIView):
         article = ArticlesModel.objects.get(slug=slug)
         data = request.data.get('article', {})
         serializer = self.serializer_class(
-            article, 
-            data=data, 
-            partial=True, 
+            article,
+            data=data,
+            partial=True,
             context={'request': request}
         )
         if serializer.is_valid():
@@ -157,7 +214,7 @@ class RatingDetails(GenericAPIView):
         Returns the authenticated user's rating on an article given
         its slug.
         """
-        article = get_article(slug) 
+        article = get_article(slug)
         if isinstance(article, dict):
             raise ValidationError(detail={'artcle': 'No article found for the slug given'})
 
@@ -177,11 +234,11 @@ class RatingDetails(GenericAPIView):
 
     def post(self, request, slug):
         """
-        This will create a rating by user on an article. We also check 
+        This will create a rating by user on an article. We also check
         if the user has rated this article before and if that is the case,
         we just update the existing rating.
         """
-        article = get_article(slug) 
+        article = get_article(slug)
         if isinstance(article, dict):
             raise ValidationError(detail={'artcle': 'No article found for the slug given'})
         rating = request.data.get('rating', {})
@@ -196,7 +253,7 @@ class RatingDetails(GenericAPIView):
         try:
             # if the rating exists, we update it
             current_rating = Rating.objects.get(
-                user=request.user.id, 
+                user=request.user.id,
                 article=article.id
             )
             serializer = self.serializer_class(current_rating, data=rating)
@@ -213,7 +270,7 @@ class RatingDetails(GenericAPIView):
         Gets an existing rating and updates it
         """
         rating = request.data.get('rating', {})
-        article = get_article(slug) 
+        article = get_article(slug)
         if isinstance(article, dict):
             raise ValidationError(detail={'artcle': 'No article found for the slug given'})
         current_rating = self.get_rating(user=request.user.id, article=article.id)
@@ -222,19 +279,19 @@ class RatingDetails(GenericAPIView):
         serializer.save(user=request.user, article=article)
 
         return Response(serializer.data)
-      
+
     def delete(self, request, slug):
         """
         Deletes a rating
         """
-        article = get_article(slug) 
+        article = get_article(slug)
         if isinstance(article, dict):
             raise ValidationError(detail={'artcle': 'No article found for the slug given'})
 
         rating = self.get_rating(user=request.user, article=article)
         rating.delete()
         return Response(
-            {'message': 'Successfully deleted rating'}, 
+            {'message': 'Successfully deleted rating'},
             status=status.HTTP_200_OK
         )
 
@@ -245,7 +302,7 @@ class CommentsListCreateView(ListCreateAPIView):
     """
     queryset = Comment.objects.all()
     serializer_class = CommentsSerializers
-    permission_classes= (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
     def post(self, request, slug):
@@ -256,13 +313,67 @@ class CommentsListCreateView(ListCreateAPIView):
         if isinstance(article, dict):
             return Response(article, status=status.HTTP_404_NOT_FOUND)
 
-        comment = request.data.get('comment',{})
+        comment = request.data.get('comment', {})
         comment['author'] = request.user.id
         comment['article'] = article.pk
         serializer = self.serializer_class(data=comment)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @receiver(post_save, sender=Comment)
+    # This receiver handles notification creation immediately a new article is created.
+    def comment_notification(sender, instance=None, created=None, **kwargs):
+        """
+        Sends notification
+        """
+        if created == True:
+            username = instance.author.username
+            author = instance.author
+            # domain for the application
+            current_domain = settings.DEFAULT_DOMAIN
+
+            # create a link to the article
+            url = (current_domain + "/api/articles/" + str(instance.article.slug))
+            # get the followers
+            recipients = User.objects.all().filter(is_subcribed=True)
+            # send notification
+            for recipient in recipients:
+                id_user = recipient.id
+                # check whether user has favorited article being commented
+                favourites = Favourite.objects.all().filter(user_id=id_user)
+                if len(favourites) == 0:
+                    return None
+                # if we have some favourites in our records
+                elif len(favourites) > 0:
+                    for favourite in favourites:
+                        # check whether there is a favourite for this article
+                        if favourite.article_id == instance.article.id:
+                            # fetch the user to notify
+                            recipient_email = User.objects.get(id=favourite.user_id)
+                            email = str(recipient_email)
+                            author_id = instance.author.id
+
+                            notification = (username + " commented on this article about " + instance.article.title)
+                            UserNotifications.objects.create(article=instance.article,
+                                                             notification=notification, author_id=author_id,
+                                                             recipient_id=email, article_link=url)
+
+                            name = User.objects.get(email=email).username
+                            # send email notification
+                            body = render_to_string('notification.html', {
+                                'url': url,
+                                'notification': notification,
+                                'name': name
+                            })
+                            send_mail(
+                                'You have a new notification',
+                                'You have a new notification from authors haven',
+                                'authors-haven@authors-heaven.com',
+                                [email],
+                                html_message=body,
+                                fail_silently=False,
+                            )
 
     def get(self, request, slug):
         """
@@ -293,7 +404,7 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
         """Create a child comment on a parent comment."""
         context = super(CommentsRetrieveUpdateDestroy,
                         self).get_serializer_context()
-        
+
         article = get_article(slug)
         if isinstance(article, dict):
             return Response(article, status=status.HTTP_404_NOT_FOUND)
@@ -302,20 +413,20 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
             message = {'detail': 'Comment not found.'}
             return Response(message, status=status.HTTP_404_NOT_FOUND)
         body = request.data.get('comment', {}).get('body', {})
-        
+
         data = {
             'body': body,
             'parent': parent,
             'article': article.pk,
             'author': request.user.id
         }
-        
+
         serializer = self.serializer_class(
             data=data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
     def destroy(self, request, slug, id):
         """
         Method for deleting a comment
@@ -324,7 +435,7 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
         if isinstance(article, dict):
             return Response(article, status=status.HTTP_404_NOT_FOUND)
 
-        comment = article.comments.filter(id=id) 
+        comment = article.comments.filter(id=id)
         if not comment:
             message = {'detail': 'Comment not found.'}
             return Response(message, status=status.HTTP_404_NOT_FOUND)
@@ -357,13 +468,15 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
             history_serializer.is_valid(raise_exception=True)
             history_serializer.save()
 
+
+        new_comment = request.data.get('comment', {}).get('body', None)
         data = {
             'body': new_body,
             'article': article.pk,
             'author': request.user.id
         }
         serializer = self.serializer_class(comment, data=data, partial=True)
-        
+
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -373,7 +486,7 @@ class FavouriteGenericAPIView(APIView):
     serializer_class = FavouriteSerializer
     permission_classes = (IsAuthenticated,)
     queryset = Favourite.objects.all()
-    renderer_classes= (FavouriteJSONRenderer,)
+    renderer_classes = (FavouriteJSONRenderer,)
 
     def post(self, request, slug):
         '''method to favourte by adding to db'''
@@ -382,8 +495,8 @@ class FavouriteGenericAPIView(APIView):
             article = ArticlesModel.objects.get(slug=slug)
         except ArticlesModel.DoesNotExist:
             raise NotFound(detail={"article": [
-                        "does not exist"
-                        ]})
+                "does not exist"
+            ]})
         favourite = {}
         favourite["user"] = request.user.id
         favourite["article"] = article.pk
@@ -391,8 +504,8 @@ class FavouriteGenericAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         article_serializer = ArticlesSerializers(instance=article, context={'request': request})
-        data = {"article":article_serializer.data}
-        data["article"]["favourited"]=True
+        data = {"article": article_serializer.data}
+        data["article"]["favourited"] = True
         data["message"] = "favourited"
         return Response(data, status.HTTP_200_OK)
 
@@ -404,18 +517,18 @@ class FavouriteGenericAPIView(APIView):
             article = ArticlesModel.objects.get(slug=slug)
         except ArticlesModel.DoesNotExist:
             raise NotFound(detail={"article": [
-                        "does not exist"
-                        ]})
+                "does not exist"
+            ]})
         "check if they have already unfavourited"
         try:
             favourite = Favourite.objects.get(user=request.user.id, article=article.pk)
         except Favourite.DoesNotExist:
             raise NotFound(detail={"message": [
-                        "you had not favourited this article"
-                        ]})
+                "you had not favourited this article"
+            ]})
         favourite.delete()
         article_serializer = ArticlesSerializers(instance=article, context={'request': request})
-        data = {"article":article_serializer.data}
+        data = {"article": article_serializer.data}
         data["message"] = "unfavourited"
         return Response(data, status.HTTP_200_OK)
 
@@ -429,9 +542,8 @@ class ArticlesLikesDislikes(GenericAPIView):
     serializer_class = LikesDislikesSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadonly)
 
-
     def post(self, request, slug):
-        #Check if the article exists in the database
+        # Check if the article exists in the database
         article = get_article(slug)
 
         if isinstance(article, dict):
@@ -439,7 +551,7 @@ class ArticlesLikesDislikes(GenericAPIView):
 
         like = request.data.get('likes', None)
 
-        #Check if the data in the request a valid boolean
+        # Check if the data in the request a valid boolean
         if type(like) == bool:
 
             #Check if the article belongs to the current user
@@ -513,33 +625,33 @@ class ArticlesLikesDislikes(GenericAPIView):
                         )
 
             except LikesDislikes.DoesNotExist:
-                #Create and save a new like object since one does not exist
-                serializer=self.serializer_class(data=like_data)
+                # Create and save a new like object since one does not exist
+                serializer = self.serializer_class(data=like_data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save(article=article, reader=request.user)
 
-                #if the request data is true, we update the article
-                #with the new data
+                # if the request data is true, we update the article
+                # with the new data
                 if like:
                     article.likes.add(request.user)
                     article.save()
                     return Response(
                         {
                             'detail': '{}, you have liked this article.'
-                            .format(request.user.username)
+                                .format(request.user.username)
                         },
                         status=status.HTTP_201_CREATED
                     )
 
-                #if the request data is false, we update the article
-                #with the new data
+                # if the request data is false, we update the article
+                # with the new data
                 else:
                     article.dislikes.add(request.user)
                     article.save()
                     return Response(
                         {
                             'detail': '{}, you have disliked this article.'
-                            .format(request.user.username)
+                                .format(request.user.username)
                         }
                         , status=status.HTTP_201_CREATED
                     )
@@ -553,25 +665,25 @@ class ArticlesLikesDislikes(GenericAPIView):
             )
 
     def delete(self, request, slug):
-        #Check if the article exists in the database
+        # Check if the article exists in the database
         article = get_article(slug)
 
         if isinstance(article, dict):
             return Response(article, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            #Verify if the instance of the article and the user
-            #exist in the database and get the like
+            # Verify if the instance of the article and the user
+            # exist in the database and get the like
             user_like = LikesDislikes.objects.get(article=article.id, reader=request.user.id)
             if user_like:
                 if user_like.likes:
-                    #If like field in the database is true we remove the count
-                    #from the likes field of the article and save the current state
+                    # If like field in the database is true we remove the count
+                    # from the likes field of the article and save the current state
                     article.likes.remove(request.user)
                     article.save()
                 else:
-                    #If like field in the database is false we remove the count
-                    #from the dislikes field of the article and save the current state
+                    # If like field in the database is false we remove the count
+                    # from the dislikes field of the article and save the current state
                     article.dislikes.remove(request.user)
                     article.save()
         except LikesDislikes.DoesNotExist:
@@ -583,12 +695,12 @@ class ArticlesLikesDislikes(GenericAPIView):
             )
         user_like.delete()
         return Response(
-                {
-                    'detail': '{}, your reaction has been deleted successfully.'
+            {
+                'detail': '{}, your reaction has been deleted successfully.'
                     .format(request.user.username)
-                }
-                , status=status.HTTP_200_OK
-            )
+            }
+            , status=status.HTTP_200_OK
+        )
 
 
 class CommentLikes(GenericAPIView):

@@ -75,6 +75,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     # falsed.
     is_staff = models.BooleanField(default=False)
 
+    # The `is_subcribed` field will show whether user is subcribed to notifications
+    # by default this will be false.
+    # falsed.
+    is_subcribed = models.BooleanField(default=False)
+
     # A timestamp representing when this object was created.
     created_at = models.DateTimeField(auto_now_add=True)
 

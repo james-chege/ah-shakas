@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/', include(('authors.apps.articles.urls', 'tags'), namespace='tags')),
     path('api/', include(('authors.apps.authentication.urls', 'authentication'), namespace='authentication')),
     path('api/', include(('authors.apps.profiles.urls', 'profiles'), namespace='profiles')),
-    path(r'', schema_view),  
+    path('api/', include('authors.apps.notifications.urls', namespace='notifications')),
+    path(r'', schema_view),
 ]
 
