@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.template.loader import render_to_string
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import (ListCreateAPIView,
@@ -224,13 +225,16 @@ class RatingDetails(GenericAPIView):
         if request.user.is_authenticated:
             try:
                 rating = Rating.objects.get(user=request.user, article=article)
+                serializer = self.serializer_class(rating)
+                return Response(serializer.data)
             except Rating.DoesNotExist:
                 pass
-        if not rating:
-            rating = Rating.objects.first()
-
-        serializer = self.serializer_class(rating)
-        return Response(serializer.data)
+        if rating is None:
+            avg = Rating.objects.filter(article=article).aggregate(Avg('rating'))
+            return Response({
+                'article': article.slug,
+                'avg_rating': avg['rating__avg']
+            })
 
     def post(self, request, slug):
         """
