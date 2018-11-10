@@ -41,7 +41,7 @@ class RegistrationAPIView(CreateAPIView):
 
         user_email = user['email']
         user_name = user['username']
-        token = generate_token(user_name)
+        token = generate_token(user_email)
         current_domain = settings.DEFAULT_DOMAIN
 
         # send email to the user for verification
@@ -243,21 +243,25 @@ class SocialSignUp(CreateAPIView):
             return Response({"error": "The email is already registered, please try another one"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        if user and user.is_active:
+        if user:
             serializer = UserSerializer(user)
             # if the access token was set to an empty string, then save the access token 
             # from the request
             auth_created = user.social_auth.get(provider=provider)
             if not auth_created.extra_data['access_token']:
-                # Facebook for example will return the access_token in its response to you. 
                 auth_created.extra_data['access_token'] = token
                 auth_created.save()
                 serializer.save()
+        
+            serializer = UserSerializer(user)
+            user_data = serializer.data
+            user_in_db = User.objects.get(username=user_data['username'])
+            user_in_db.is_active = True
+            user_data["token"] = user_in_db.token
+            user_in_db.save()
 
-            
-            serializer.instance = user
             headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, 
+            return Response(user_data, status=status.HTTP_201_CREATED, 
                             headers=headers)
         else:
             return Response({"error": "Something went wrong with the authentication, please try again"},
