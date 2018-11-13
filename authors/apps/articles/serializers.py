@@ -187,6 +187,25 @@ class FavouriteSerializer(serializers.ModelSerializer):
             )
         ]
 
+class FavouriteListSerializer(serializers.ModelSerializer):
+    """Class to serialise favorite articles"""
+    def to_representation(self, instance):
+        """
+        overide representation for custom output
+        """
+
+        representation = super(FavouriteListSerializer,
+                               self).to_representation(instance)
+        serializer = ArticlesSerializers( instance.article, context=self.context)
+        representation.update({
+            'article':serializer.data
+        })
+
+        return representation
+    class Meta:
+        model = Favourite
+        fields = ('article',)
+
 class ArticleStatSerializer(serializers.ModelSerializer):
     """
     Serializer class for reading stats
@@ -411,4 +430,3 @@ class ReportArticlesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportArticles
         fields = ('article', 'user', 'report_msg')
-

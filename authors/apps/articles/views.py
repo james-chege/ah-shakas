@@ -26,6 +26,7 @@ from .serializers import (ArticlesSerializers,
                           CommentsSerializers,
                           RatingSerializer,
                           FavouriteSerializer,
+                          FavouriteListSerializer,
                           TagSerializers,
                           LikesDislikesSerializer,
                           CommentsLikeSerializer,
@@ -615,7 +616,38 @@ class FavouriteGenericAPIView(APIView):
         data["message"] = "unfavourited"
         return Response(data, status.HTTP_200_OK)
 
+class FavoriteList(ListAPIView):
+    """
+    Class for retrieving a list of favorite articles by one user
+    """
+    serializer_class = FavouriteListSerializer
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (ArticlesRenderer,)
 
+    def get(self, request):
+        """
+        Get all favorite articles
+        """
+        try:
+            queryset = Favourite.objects.filter(user=request.user)
+        except Favourite.DoesNotExist:
+            message = Response(
+                    {
+                        'message': 'No favorites found'
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        if queryset:
+            serializer = FavouriteListSerializer(queryset, many=True, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                    {
+                        'message': 'No favorites found'
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
 class ArticlesLikesDislikes(GenericAPIView):
     """
     Class for creating and deleting article likes/dislikes

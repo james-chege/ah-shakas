@@ -72,4 +72,20 @@ class Favourite_tests(BaseTest):
         url = reverse('articles:favourite', kwargs={"slug":slug})
         response = self.client.delete(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-   
+
+    def test_user_can_get_favourites(self):
+        """User can get articles they favourite"""
+        slug = self.create_article()
+        fave_url = reverse('articles:favourite', kwargs={"slug":slug})
+        self.client.post(fave_url, format='json')
+        fave_list_url = reverse('articles:favourite-list')
+        response = self.client.get(fave_list_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_user_cant_get_non_existent_favourites(self):
+        """User cant get favorite list that dpes not exist"""
+        self.create_and_login_user()
+        fave_list_url = reverse('articles:favourite-list')
+        response = self.client.get(fave_list_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
