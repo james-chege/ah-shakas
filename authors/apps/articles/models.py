@@ -93,10 +93,13 @@ class Rating(models.Model):
     rating = models.FloatField(null=False)
 
 
-class Favourite(models.Model):
+class Favourite(TimeStampedModel):
     """model for favourating articles"""
     article = models.ForeignKey(ArticlesModel, related_name="favourited", on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="favourites", on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ('created_at',)
 
 
 class Tags(models.Model):

@@ -42,11 +42,10 @@ class ArticlesRenderer(renderers.BaseRenderer):
 
 class FavouriteJSONRenderer(JSONRenderer):
        def render(self, data, media_type=None, renderer_context=None):
-        # view exceptions errors...
         if renderer_context:
             code = renderer_context.get('response').status_code
             if not code == status.HTTP_200_OK:
-                return_data = {"errors":data}
+                return_data = data
                 return super(FavouriteJSONRenderer, self).render(return_data )
         return super(FavouriteJSONRenderer, self).render(data) 
 
@@ -63,4 +62,6 @@ class RatingJSONRenderer(JSONRenderer):
         return json.dumps({
             'rating': data
         })
+
+
             
