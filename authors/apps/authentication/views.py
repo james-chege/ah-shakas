@@ -41,11 +41,11 @@ class RegistrationAPIView(CreateAPIView):
 
         user_email = user['email']
         user_name = user['username']
-        token = generate_token(user_email)
-        current_domain = settings.DEFAULT_DOMAIN
+        token = generate_token(user_name)
+        domain = os.getenv("VERIFY_URL")
 
         # send email to the user for verification
-        url = current_domain + "/api/verify/" + str(token)
+        url = domain + str(token)
         body = render_to_string('verify.html', {
             'link': url,
             'name': user_name
@@ -264,5 +264,5 @@ class SocialSignUp(CreateAPIView):
             return Response(user_data, status=status.HTTP_201_CREATED, 
                             headers=headers)
         else:
-            return Response({"error": "Something went wrong with the authentication, please try again"},
+            return Response({"error": "Something went wrong with the social authentication, please try again"},
                                         status=status.HTTP_400_BAD_REQUEST)

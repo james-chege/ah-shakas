@@ -60,8 +60,6 @@ class RatingJSONRenderer(JSONRenderer):
             if not code in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
                 return super(RatingJSONRenderer, self).render(data)
 
-        if not renderer_context['request'].user.is_authenticated:
-            del data['rating']
         return json.dumps({
             'rating': data
         })
