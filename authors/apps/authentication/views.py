@@ -150,7 +150,7 @@ class EmailSentAPIView(generics.CreateAPIView):
         subject = "Password reset"
         reset_link = os.getenv('PASSWORD_RESET')
         body = render_to_string('password_reset.html', {
-            'link':reset_link+'?token=' + token,
+            'link':reset_link+'reset_password/' + token,
             'name': user.username,
         })
         sender = os.getenv('EMAIL_SENDER')
