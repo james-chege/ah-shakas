@@ -501,8 +501,9 @@ class HighlightedDetails(APIView):
 
     def validate_highlight(self, highlight, article):
         index = highlight["index"]
-        Body = article.body[index: index + len(highlight["snippet"])]
-        return Body == highlight["snippet"]
+        article_body = article.body
+        count = article_body.count(highlight["snippet"])
+        return index <= count-1
 
     def post(self, request, slug):
         # Check if the article exists in the database
