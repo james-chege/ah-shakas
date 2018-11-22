@@ -187,6 +187,25 @@ class LikesDislikesTests(BaseTest):
         old_count = 1
         self.client.delete(self.like_url, format='json')
         self.assertNotEqual(likes_count, old_count)
+    
+    def test_like_status_on_like(self):
+        """
+        Test that the like status is updated
+        """
+        response = self.client.get(self.article_url, format='json')
+        like_status = response.data['like_status']
+        self.create_like()
+        response = self.client.get(self.article_url, format='json')
+        new_like_status = response.data['like_status']
+        self.assertNotEqual(like_status, new_like_status)
+
+    def test_like_status_on_dislike(self):
+        response = self.client.get(self.article_url, format='json')
+        like_status = response.data['like_status']
+        self.create_dislike()
+        response = self.client.get(self.article_url, format='json')
+        new_like_status = response.data['like_status']
+        self.assertNotEqual(like_status, new_like_status)
 
     def test_delete_like_unauthenticated_user(self):
         """
