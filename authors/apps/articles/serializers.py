@@ -251,6 +251,8 @@ class CommentsSerializers(serializers.ModelSerializer):
 
     history = serializers.SerializerMethodField()
 
+    author = serializers.SerializerMethodField(read_only=True)
+
     def get_history(self, obj):
        return [
             {
@@ -258,6 +260,12 @@ class CommentsSerializers(serializers.ModelSerializer):
                 'created_at': self.format_date(history.created_at),
             }  for history in obj.history.all()
         ]
+
+    def get_author(self, obj):
+        """This method gets the profile object for the article"""
+        serializer = ProfileSerializer(
+            instance=Profile.objects.get(user=obj.author))
+        return serializer.data
 
     def format_date(self, date):
         return date.strftime('%d %b %Y %H:%M:%S')
@@ -271,7 +279,8 @@ class CommentsSerializers(serializers.ModelSerializer):
 
                     'id': thread.id,
                         'body': thread.body,
-                        'author': thread.author.username,
+                        'author': ProfileSerializer(
+                                instance=Profile.objects.get(user=thread.author)).data,
                         'created_at': self.format_date(thread.created_at),
                         'replies': thread.threads.count(),
                         'comment_like_count':thread.comment_likes.count(),
@@ -283,7 +292,6 @@ class CommentsSerializers(serializers.ModelSerializer):
        representation['created_at'] = self.format_date(instance.created_at)
        representation['updated_at'] = self.format_date(instance.updated_at)
        representation['comment_like_count']=instance.comment_likes.count()
-       representation['author'] = instance.author.username
        representation['article'] = instance.article.title
        representation['reply_count'] = instance.threads.count() 
        representation['threads'] = threads

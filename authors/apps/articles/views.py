@@ -328,7 +328,7 @@ class CommentsListCreateView(ListCreateAPIView):
         comment['article'] = article.pk
         serializer = self.serializer_class(data=comment)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(author=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @receiver(post_save, sender=Comment)
@@ -427,14 +427,13 @@ class CommentsRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView, ListCreateAPIV
         data = {
             'body': body,
             'parent': parent,
-            'article': article.pk,
-            'author': request.user.id
+            'article': article.pk
         }
 
         serializer = self.serializer_class(
             data=data, context=context)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(author=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, slug, id):
