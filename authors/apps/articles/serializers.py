@@ -53,6 +53,21 @@ class ArticlesSerializers(serializers.ModelSerializer):
         except:
             return False
 
+    like_status = serializers.SerializerMethodField()
+
+    def get_like_status(self, obj):
+        try:
+            like_dislike_entry = LikesDislikes.objects.values_list(
+                'likes',flat=True).filter(
+                reader=self.context["request"].user.id,article=obj.id
+                )
+            if (like_dislike_entry[0]):
+                return 'liked'
+            else:
+                return 'disliked'
+        except Exception as e:
+            return None
+
     tags = TagsRelation(many=True, required=False)
 
     author = serializers.SerializerMethodField(read_only=True)
@@ -150,7 +165,8 @@ class ArticlesSerializers(serializers.ModelSerializer):
             'dislikes_count',
             'created_at',
             'updated_at',
-            'favourited'
+            'favourited',
+            'like_status',
         )
 
     def create(self, validated_data):
