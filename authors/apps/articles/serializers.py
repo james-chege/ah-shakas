@@ -259,8 +259,6 @@ class CommentsSerializers(serializers.ModelSerializer):
                             )
                     if (like_dislike_entry[0]):
                             return True
-                    else:
-                            return False
             except Exception as e:
                 return None
 				
