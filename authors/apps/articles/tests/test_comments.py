@@ -1,5 +1,6 @@
 from rest_framework import status
 from authors.apps.articles.tests.base_tests import BaseTest, API_Reverse, APITestCase, APIClient
+import json
 
 class CommentsTests(BaseTest):
     """
@@ -192,3 +193,9 @@ class CommentsTests(BaseTest):
         url = API_Reverse('articles:comment-details', {slug: 'slug', 1: 'id'})
         response = self.client.put(url, data={'comment': {'body': 'New comment'}}, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def get_like_comment_url(self):
+        slug = self.create_article()
+        url = API_Reverse('articles:comments', {slug: 'slug'})
+        response = self.client.post(url, self.comment, format='json')
+        self.assertIn("like_status", json.dumps(response.data))
