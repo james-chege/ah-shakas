@@ -249,6 +249,22 @@ class CommentsSerializers(serializers.ModelSerializer):
         }
     )
 
+    like_status = serializers.SerializerMethodField()
+
+    def get_like_status(self, obj):
+            try:
+                    like_dislike_entry = CommentLike.objects.values_list(
+                            'comment_likes',flat=True).filter(
+                            commentor=self.context["request"].user.id,specific_comment=obj.id
+                            )
+                    if (like_dislike_entry[0]):
+                            return True
+                    else:
+                            return False
+            except Exception as e:
+                return None
+				
+
     history = serializers.SerializerMethodField()
 
     author = serializers.SerializerMethodField(read_only=True)
@@ -309,7 +325,8 @@ class CommentsSerializers(serializers.ModelSerializer):
            'author',
            'article',
            'parent',
-           'history'
+           'history',
+           'like_status',
        )
         
 
