@@ -17,21 +17,24 @@ class Profile(TimeStampedModel):
     # The related_name attribute specifies the name of the reverse relation from 
     # the Profile model back to itself.
     # symmetrical=False results in creating one row
-    isfollowing= models.ManyToManyField('self', related_name='is_following',symmetrical=False)
+    following = models.ManyToManyField('self', related_name='is_following',symmetrical=False)
+    followers = models.ManyToManyField('self', symmetrical=False)
     def __str__(self):
         return self.user.username
 
     def follow(self, profile):
-        self.isfollowing.add(profile)
+        self.following.add(profile)
+        profile.followers.add(self.user.id)
 
     def unfollow(self, profile):
-        self.isfollowing.remove(profile)
+        self.following.remove(profile)
+        profile.followers.remove(self.user.id)
 
-    def followers(self, profile):
+    def list_followers(self, profile):
         return profile.is_following.all()
 
-    def following(self, profile):
-        return profile.isfollowing.all()
+    def list_following(self, profile):
+        return profile.following.all()
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_save_profile(sender, instance, created, **kwargs):
