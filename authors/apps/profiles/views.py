@@ -86,7 +86,7 @@ class FollowCreate(CreateAPIView):
         # Add user
         following_user.follow(followed_user)
 
-        serialize = self.serializer_class(following_user, context={'request': request})
+        serialize = self.serializer_class(followed_user, context={'request': request})
         return Response(data=serialize.data, status=status.HTTP_201_CREATED)
 
 
@@ -110,7 +110,7 @@ class FollowCreate(CreateAPIView):
         # unfollow user
         following_user.unfollow(followed_user)
 
-        serialize = self.serializer_class(following_user, context={'request': request})
+        serialize = self.serializer_class(followed_user, context={'request': request})
         return Response(data=serialize.data, status=status.HTTP_200_OK)
 
 class Following(generics.RetrieveAPIView):

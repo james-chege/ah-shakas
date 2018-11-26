@@ -42,7 +42,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_follow_status(self, request):
         follows = Profile.objects.values_list('followers',flat=True).filter(
             user=request.user.id,
-            followers=self.context["request"].user.id
+            followers=self.context['request'].user.id
             )
         if (follows):
             return True
