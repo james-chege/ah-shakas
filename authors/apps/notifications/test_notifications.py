@@ -1,6 +1,7 @@
 from authors.apps.articles.tests.base_tests import BaseTest
 from rest_framework import status
 from rest_framework.reverse import reverse
+import json
 from django.core import mail
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -25,6 +26,7 @@ class TestUserNotifications(BaseTest):
         self.unsubscribe = reverse('notifications:unsubscribe')
         self.all_notifications = reverse('notifications:notification')
         self.follow_url = reverse("profiles:follow", kwargs={"username": self.user['user']['username']})
+        self.is_subscribed = reverse('notifications:is_subscribed')
 
     def test_notifications_subscription(self):
         resp = self.client.get(self.subscribe)
@@ -74,5 +76,14 @@ class TestUserNotifications(BaseTest):
             if created:
                 instance = self.slug
                 return instance
+
+    def test_check_subscription_status(self):
+        # is_subscribed endpoint a user who has subscribed has a response of true
+        self.client.get(self.subscribe)
+        response = self.client.get(self.is_subscribed)
+        response_body = json.loads(response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response_body['is_subscribed'])
+        
 
 

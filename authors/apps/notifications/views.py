@@ -41,7 +41,7 @@ class SubscribeAPIView(generics.ListAPIView):
         else:
             user.is_subcribed = True
             user.save()
-            return Response({"Message": "You have successfully subscribed to notifications"}, status=status.HTTP_200_OK)
+            return Response({"Message": "You have successfully subscribed to notifications", "is_subscribed": user.is_subcribed}, status=status.HTTP_200_OK)
 
 
 class UnSubscribeAPIView(generics.ListAPIView):
@@ -60,4 +60,17 @@ class UnSubscribeAPIView(generics.ListAPIView):
         else:
             user.is_subcribed = False
             user.save()
-            return Response({"Message": "You have successfully unsubscribed to notifications"})
+            return Response({"Message": "You have successfully unsubscribed to notifications", "is_subscribed": user.is_subcribed})
+
+class IsSubscribedAPIView(generics.ListAPIView):
+    """
+    A view for checking if user is subscribed
+    """
+
+    renderer_classes = (JSONRenderer, )
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserSerializer
+    def get(self, request):
+        email = request.user
+        user = User.objects.get(email=email)
+        return Response({"is_subscribed": user.is_subcribed})
