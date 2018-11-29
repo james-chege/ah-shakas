@@ -13,17 +13,21 @@ from authors.apps.authentication.serializers import (UserSerializer)
 from .serializers import NotificationSerializer
 
 
-class NotificationAPIView(generics.ListAPIView):
+class NotificationAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     A View that returns notifications
     """
     renderer_classes = (JSONRenderer, )
     permission_classes = (IsAuthenticated,)
+
     def get(self, request, format=None):
         notifications = UserNotifications.objects.all()
         serializer = NotificationSerializer(notifications, many=True, read_only=True)
         return Response({"notifications": serializer.data})
 
+    def put(self, request, format=None):
+        UserNotifications.objects.all().update(read_status=True)
+        return Response({"message": "Notifications has been read!"}, status=status.HTTP_200_OK)
 
 class SubscribeAPIView(generics.ListAPIView):
     """
