@@ -989,7 +989,7 @@ class ReportArticlesView(ListCreateAPIView):
                 serializer.is_valid(raise_exception=True)
                 # Send mail to Admin before saving the serialized object
                 current_domain = settings.DEFAULT_DOMAIN
-                url = current_domain + "/api/article/" + str(article.slug)
+                url = current_domain + "/article/" + str(article.slug)
                 email = os.getenv('ADMIN_EMAIL')
                 body = render_to_string('report.html', {
                     'link': url,
