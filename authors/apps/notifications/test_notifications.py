@@ -84,6 +84,10 @@ class TestUserNotifications(BaseTest):
         response_body = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response_body['is_subscribed'])
-        
+
+    def test_reading_of_notifications(self):
+        resp = self.client.put(self.all_notifications)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
 
 
