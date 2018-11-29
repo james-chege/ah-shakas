@@ -102,7 +102,7 @@ def notification(sender, instance=None, created=None, **kwargs):
         current_domain = settings.DEFAULT_DOMAIN
 
         # create a link for to the article
-        url = (current_domain + "/api/articles/" + str(instance.slug))
+        url = (current_domain + "/article/" + str(instance.slug))
         # get the followers
         profile = author.profile
         followers = profile.is_following.all()

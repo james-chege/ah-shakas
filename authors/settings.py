@@ -209,7 +209,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # app default domain
-DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
+DEFAULT_DOMAIN = 'https://ah-shakas-frontend-staging.herokuapp.com'
 
 #Words per minute(WPM)
 WPM = 250
