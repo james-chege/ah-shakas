@@ -20,7 +20,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
     mail= serializers.SerializerMethodField(read_only=True)
     title = serializers.CharField(
         required=True,
-        max_length=128,
+        max_length=1000,
         error_messages={
             'required': 'Title is required',
             'max_length': 'Title cannot be more than 128'
@@ -28,7 +28,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
     )
     description = serializers.CharField(
         required=False,
-        max_length=250,
+        max_length=1000,
         error_messages={
             'max_length': 'Description should not be more than 250'
         }
@@ -242,7 +242,7 @@ class ArticleStatSerializer(serializers.ModelSerializer):
 
 class CommentsSerializers(serializers.ModelSerializer):
     body = serializers.CharField(
-        max_length=200,
+        max_length=2000,
         required=True,
         error_messages={
             'required': 'Comments field cannot be blank'
@@ -382,7 +382,7 @@ class LikesDislikesSerializer(serializers.ModelSerializer):
 
 class HighlightedSerializer(serializers.ModelSerializer):
     author = serializers.CharField(
-        max_length=200,
+        max_length=128,
         required=True,
         error_messages={
             'required': 'Author field cannot be blank'
@@ -397,7 +397,7 @@ class HighlightedSerializer(serializers.ModelSerializer):
     )
 
     comment = serializers.CharField(
-        max_length=200,
+        max_length=2000,
         required=False
     )
 
@@ -437,7 +437,7 @@ class HighlightedSerializer(serializers.ModelSerializer):
 class CommentHistorySerializer(serializers.ModelSerializer):
     body = serializers.CharField(
         required=True,
-        max_length=200,
+        max_length=2000,
         error_messages={
             'required': 'Title is required',
             'max_length': 'Title cannot be more than 200 characters'

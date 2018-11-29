@@ -137,16 +137,14 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CORS_ORIGIN_WHITELIST = (
+
+CORS_ORIGIN_WHITELIST = os.getenv('CORS_WHITELIST', '*').split(',') + [
     '*',
     '0.0.0.0:4000',
     'localhost:4000',
     'localhost:3000',
     'localhost:8000',
-    'ah-shakas.herokuapp.com',
-    'ah-shakas-frontend-staging.herokuapp.com',
-    'ah-shakas-app.herokuapp.com',
-)
+]
 
 # Tell Django about the custom `User` model we created. The string
 # `authentication.User` tells Django we are referring to the `User` model in
@@ -154,7 +152,7 @@ CORS_ORIGIN_WHITELIST = (
 # called `INSTALLED_APPS`.
 AUTH_USER_MODEL = 'authentication.User'
 
-DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
+DEFAULT_DOMAIN = os.getenv('DEFAULT_DOMAIN', 'https://ah-shakas.herokuapp.com')
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'authors.apps.core.exceptions.core_exception_handler',
