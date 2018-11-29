@@ -30,7 +30,7 @@ class ProfileAPIView(APIView):
     def get(self, request, username, format=None):
         try:
             profile =  Profile.objects.get(user__username=username)
-            serializer = ProfileSerializer(profile)
+            serializer = ProfileSerializer(profile, context={'request': request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Profile.DoesNotExist:
             return Response(
@@ -43,7 +43,12 @@ class ProfileAPIView(APIView):
     def put(self, request, username, format=None):
         try:
             serializer_data = request.data.get('user', {})
-            serializer = ProfileSerializer(request.user.profile, data=serializer_data, partial=True)
+            serializer = ProfileSerializer(
+                request.user.profile,
+                data=serializer_data,
+                partial=True,
+                context={'request': request}
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
@@ -81,7 +86,7 @@ class FollowCreate(CreateAPIView):
         # Add user
         following_user.follow(followed_user)
 
-        serialize = self.serializer_class(following_user, context={'request': request})
+        serialize = self.serializer_class(followed_user, context={'request': request})
         return Response(data=serialize.data, status=status.HTTP_201_CREATED)
 
 
@@ -105,7 +110,7 @@ class FollowCreate(CreateAPIView):
         # unfollow user
         following_user.unfollow(followed_user)
 
-        serialize = self.serializer_class(following_user, context={'request': request})
+        serialize = self.serializer_class(followed_user, context={'request': request})
         return Response(data=serialize.data, status=status.HTTP_200_OK)
 
 class Following(generics.RetrieveAPIView):
@@ -121,9 +126,9 @@ class Following(generics.RetrieveAPIView):
         following_user = current_profile(request)
         followed_user = followed_profile(username)
 
-        following = following_user.following(followed_user)
+        following = following_user.list_following(followed_user)
 
-        serializer = self.serializer_class(following, many=True)
+        serializer = self.serializer_class(following, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class FollowedBy(generics.RetrieveAPIView):
@@ -139,9 +144,9 @@ class FollowedBy(generics.RetrieveAPIView):
         following_user = current_profile(request)
         followed_user = followed_profile(username)
 
-        follower = following_user.followers(followed_user)
+        follower = following_user.list_followers(followed_user)
 
-        serializer = self.serializer_class(follower, many=True)
+        serializer = self.serializer_class(follower, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class ProfileListAPIView(ListAPIView):

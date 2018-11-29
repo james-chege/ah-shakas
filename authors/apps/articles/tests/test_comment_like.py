@@ -138,3 +138,11 @@ class LikesDislikesTests(BaseTest):
         old_count = 1
         self.create_like()
         self.assertNotEqual(comment_like_count, old_count)
+
+    def test_like_status_on_dislike(self):
+        response = self.client.get(self.comment_url, format='json')
+        like_status = response.data['like_status']
+        self.create_like()
+        response = self.client.get(self.comment_url, format='json')
+        new_like_status = response.data['like_status']
+        self.assertNotEqual(like_status, new_like_status)

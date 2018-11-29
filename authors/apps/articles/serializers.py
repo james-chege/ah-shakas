@@ -7,7 +7,7 @@ from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.profiles.models import Profile
 from rest_framework.validators import UniqueTogetherValidator
 from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike, CommentHistory, ReportArticles, ArticleStat, Highlighted
-from authors.apps.profiles.serializers import ProfileSerializer
+from authors.apps.profiles.serializers import ProfileListSerializer
 from authors.apps.articles.relations import TagsRelation
 
 
@@ -85,7 +85,7 @@ class ArticlesSerializers(serializers.ModelSerializer):
 
     def get_author(self, obj):
         """This method gets the profile object for the article"""
-        serializer = ProfileSerializer(
+        serializer = ProfileListSerializer(
             instance=Profile.objects.get(user=obj.author))
         return serializer.data
 
@@ -249,6 +249,18 @@ class CommentsSerializers(serializers.ModelSerializer):
         }
     )
 
+    like_status = serializers.SerializerMethodField()
+
+    def get_like_status(self, obj):
+            try:
+                    like_dislike_entry = CommentLike.objects.get(
+                            commentor=self.context["request"].user.id,specific_comment=obj.id
+                            )
+                    return True
+            except:
+                return False
+				
+
     history = serializers.SerializerMethodField()
 
     author = serializers.SerializerMethodField(read_only=True)
@@ -263,7 +275,7 @@ class CommentsSerializers(serializers.ModelSerializer):
 
     def get_author(self, obj):
         """This method gets the profile object for the article"""
-        serializer = ProfileSerializer(
+        serializer = ProfileListSerializer(
             instance=Profile.objects.get(user=obj.author))
         return serializer.data
 
@@ -279,7 +291,7 @@ class CommentsSerializers(serializers.ModelSerializer):
 
                     'id': thread.id,
                         'body': thread.body,
-                        'author': ProfileSerializer(
+                        'author': ProfileListSerializer(
                                 instance=Profile.objects.get(user=thread.author)).data,
                         'created_at': self.format_date(thread.created_at),
                         'replies': thread.threads.count(),
@@ -309,7 +321,8 @@ class CommentsSerializers(serializers.ModelSerializer):
            'author',
            'article',
            'parent',
-           'history'
+           'history',
+           'like_status',
        )
         
 

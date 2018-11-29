@@ -27,6 +27,29 @@ class ProfileSerializer(serializers.ModelSerializer):
         }
     )
 
+    followers_count = serializers.IntegerField(
+        read_only=True,
+        source="followers.count"
+    )
+
+    following_count = serializers.IntegerField(
+        read_only=True,
+        source="following.count"
+    )
+
+    follow_status = serializers.SerializerMethodField()
+
+    def get_follow_status(self, request):
+        follows = Profile.objects.values_list('followers',flat=True).filter(
+            user=request.user.id,
+            followers=self.context['request'].user.id
+            )
+        if (follows):
+            return True
+        else:
+            return False
+        
+
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', None)
@@ -39,16 +62,23 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('username', 'bio', 'image_url', 'isfollowing', 'created_at', 'updated_at')
+        fields = ('username', 'bio', 'image_url', 'followers_count', 'follow_status', 'following_count', 'created_at', 'updated_at')
 
 class ProfileListSerializer(serializers.ModelSerializer):
     """
     serializes the list of profiles to be shown
     """
     username = serializers.CharField(source='user.username', read_only=True)
-    bio = serializers.CharField()
-    image = serializers.ImageField(default=None)
-    isfollowing = serializers.BooleanField()
+
+    followers_count = serializers.IntegerField(
+        read_only=True,
+        source="followers.count"
+    )
+
+    following_count = serializers.IntegerField(
+        read_only=True,
+        source="following.count"
+    )
     class Meta:
         model = Profile
-        fields = ['username', 'bio', 'image','isfollowing']
+        fields = ('username', 'bio', 'image_url', 'followers_count', 'following_count')
