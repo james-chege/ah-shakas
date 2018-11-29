@@ -9,9 +9,9 @@ from authors.apps.core.models import TimeStampedModel
 
 class ArticlesModel(models.Model):
     """ This class defines the model for creating articles"""
-    slug = models.SlugField(db_index=True, max_length=128, unique=True, blank=True)
-    title = models.CharField(max_length=128, blank=False)
-    description = models.CharField(max_length=120, blank=False)
+    slug = models.SlugField(db_index=True, max_length=1000, unique=True, blank=True)
+    title = models.CharField(max_length=1000, blank=False)
+    description = models.CharField(max_length=2000, blank=False)
     body = models.TextField(blank=False)
     tags = models.ManyToManyField('articles.Tags', related_name='articles')
     image_url = models.URLField(blank=True, null=True)
@@ -60,7 +60,7 @@ class Comment(models.Model):
     Model for comments
     """
 
-    body = models.CharField(max_length=200)
+    body = models.CharField(max_length=2000)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
@@ -83,7 +83,7 @@ class Comment(models.Model):
 class Highlighted(TimeStampedModel):
     author = models.ForeignKey(User, related_name='highlights', on_delete=models.CASCADE)
     article = models.ForeignKey(ArticlesModel, related_name='highlights', on_delete=models.CASCADE)
-    comment = models.CharField(max_length=200, blank=True)
+    comment = models.CharField(max_length=2000, blank=True)
     snippet = models.TextField(blank=False)
     index = models.IntegerField(blank=False)
 
@@ -116,12 +116,14 @@ class LikesDislikes(models.Model):
 
     class Meta:
         unique_together = ('article', 'reader')
+
+
 class CommentHistory(models.Model):
     """
     Model for comment history
     """
 
-    body = models.CharField(max_length=200)
+    body = models.CharField(max_length=2000)
     created_at = models.DateTimeField(auto_now_add=True)
     parent = models.ForeignKey(
         Comment,
@@ -150,4 +152,4 @@ class ReportArticles(models.Model):
     """This class creates models for reporting articles"""
     article = models.ForeignKey(ArticlesModel, to_field='slug', on_delete=models.CASCADE)
     user = models.ForeignKey(User, to_field='email', on_delete=models.CASCADE)
-    report_msg = models.CharField(null=False, max_length=250)
+    report_msg = models.CharField(null=False, max_length=2000)
