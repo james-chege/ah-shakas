@@ -6,18 +6,19 @@ from authors import settings
 from authors.apps.articles.helpers import get_time_to_read_article
 from authors.apps.profiles.models import Profile
 from rest_framework.validators import UniqueTogetherValidator
-from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike, CommentHistory, ReportArticles, ArticleStat, Highlighted
+from .models import ArticlesModel, Rating, Comment, Favourite, Tags, LikesDislikes, CommentLike, CommentHistory, \
+    ReportArticles, ArticleStat, Highlighted
 from authors.apps.profiles.serializers import ProfileListSerializer
 from authors.apps.articles.relations import TagsRelation
 
 
 class ArticlesSerializers(serializers.ModelSerializer):
-    #add return fields
+    # add return fields
     url = serializers.SerializerMethodField(read_only=True)
     facebook = serializers.SerializerMethodField(read_only=True)
-    Linkedin= serializers.SerializerMethodField(read_only=True)
-    twitter= serializers.SerializerMethodField(read_only=True)
-    mail= serializers.SerializerMethodField(read_only=True)
+    Linkedin = serializers.SerializerMethodField(read_only=True)
+    twitter = serializers.SerializerMethodField(read_only=True)
+    mail = serializers.SerializerMethodField(read_only=True)
     title = serializers.CharField(
         required=True,
         max_length=1000,
@@ -58,9 +59,9 @@ class ArticlesSerializers(serializers.ModelSerializer):
     def get_like_status(self, obj):
         try:
             like_dislike_entry = LikesDislikes.objects.values_list(
-                'likes',flat=True).filter(
-                reader=self.context["request"].user.id,article=obj.id
-                )
+                'likes', flat=True).filter(
+                reader=self.context["request"].user.id, article=obj.id
+            )
             if (like_dislike_entry[0]):
                 return 'liked'
             else:
@@ -123,27 +124,26 @@ class ArticlesSerializers(serializers.ModelSerializer):
         representation['time_to_read'] = get_time_to_read_article(instance)
         return representation
 
-
-    def get_url(self,obj):
+    def get_url(self, obj):
         request = self.context.get("request")
         return obj.api_url(request=request)
 
-    def get_facebook(self,obj):
+    def get_facebook(self, obj):
         request = self.context.get("request")
-        return 'http://www.facebook.com/sharer.php?u='+obj.api_url(request=request)
+        return 'http://www.facebook.com/sharer.php?u=' + obj.api_url(request=request)
 
-    def get_Linkedin(self,obj):
+    def get_Linkedin(self, obj):
         request = self.context.get("request")
-        return 'http://www.linkedin.com/shareArticle?mini=true&amp;url='+obj.api_url(request=request)
+        return 'http://www.linkedin.com/shareArticle?mini=true&amp;url=' + obj.api_url(request=request)
 
-    def get_twitter(self,obj):
+    def get_twitter(self, obj):
         request = self.context.get("request")
-        return 'https://twitter.com/share?url='+obj.api_url(request=request)+'&amp;text=Amazing Read'
+        return 'https://twitter.com/share?url=' + obj.api_url(request=request) + '&amp;text=Amazing Read'
 
-    def get_mail(self,obj):
+    def get_mail(self, obj):
         request = self.context.get("request")
-        return  'mailto:?subject=New Article Alert&body={}'.format(
-                    obj.api_url(request=request))
+        return 'mailto:?subject=New Article Alert&body={}'.format(
+            obj.api_url(request=request))
 
     class Meta:
         model = ArticlesModel
@@ -191,7 +191,8 @@ class TagSerializers(serializers.ModelSerializer):
 
 
 class FavouriteSerializer(serializers.ModelSerializer):
-    '''serializer for favouriting'''
+    """serializer for favouriting"""
+
     class Meta:
         model = Favourite
         fields = ('article', 'user')
@@ -203,8 +204,10 @@ class FavouriteSerializer(serializers.ModelSerializer):
             )
         ]
 
+
 class FavouriteListSerializer(serializers.ModelSerializer):
     """Class to serialise favorite articles"""
+
     def to_representation(self, instance):
         """
         overide representation for custom output
@@ -212,15 +215,17 @@ class FavouriteListSerializer(serializers.ModelSerializer):
 
         representation = super(FavouriteListSerializer,
                                self).to_representation(instance)
-        serializer = ArticlesSerializers( instance.article, context=self.context)
+        serializer = ArticlesSerializers(instance.article, context=self.context)
         representation.update({
-            'article':serializer.data
+            'article': serializer.data
         })
 
         return representation
+
     class Meta:
         model = Favourite
         fields = ('article',)
+
 
 class ArticleStatSerializer(serializers.ModelSerializer):
     """
@@ -231,14 +236,15 @@ class ArticleStatSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
 
     def get_comment_count(self, value):
-       return Comment.objects.filter(article=value).count()
+        return Comment.objects.filter(article=value).count()
 
     def get_view_count(self, value):
-       return ArticleStat.objects.filter(article=value).count()
+        return ArticleStat.objects.filter(article=value).count()
 
     class Meta:
-       model = ArticlesModel
-       fields = ['slug', 'title', 'view_count', 'comment_count']
+        model = ArticlesModel
+        fields = ['slug', 'title', 'view_count', 'comment_count']
+
 
 class CommentsSerializers(serializers.ModelSerializer):
     body = serializers.CharField(
@@ -252,25 +258,24 @@ class CommentsSerializers(serializers.ModelSerializer):
     like_status = serializers.SerializerMethodField()
 
     def get_like_status(self, obj):
-            try:
-                    like_dislike_entry = CommentLike.objects.get(
-                            commentor=self.context["request"].user.id,specific_comment=obj.id
-                            )
-                    return True
-            except:
-                return False
-				
+        try:
+            like_dislike_entry = CommentLike.objects.get(
+                commentor=self.context["request"].user.id, specific_comment=obj.id
+            )
+            return True
+        except:
+            return False
 
     history = serializers.SerializerMethodField()
 
     author = serializers.SerializerMethodField(read_only=True)
 
     def get_history(self, obj):
-       return [
+        return [
             {
                 'body': history.body,
                 'created_at': self.format_date(history.created_at),
-            }  for history in obj.history.all()
+            } for history in obj.history.all()
         ]
 
     def get_author(self, obj):
@@ -282,49 +287,49 @@ class CommentsSerializers(serializers.ModelSerializer):
     def format_date(self, date):
         return date.strftime('%d %b %Y %H:%M:%S')
 
-    def to_representation(self,instance):
-       """
+    def to_representation(self, instance):
+        """
        overide representation for custom output
        """
-       threads = [
-                    {
+        threads = [
+            {
 
-                    'id': thread.id,
-                        'body': thread.body,
-                        'author': ProfileListSerializer(
-                                instance=Profile.objects.get(user=thread.author)).data,
-                        'created_at': self.format_date(thread.created_at),
-                        'replies': thread.threads.count(),
-                        'comment_like_count':thread.comment_likes.count(),
-                        'updated_at': self.format_date(thread.updated_at)
-                    }  for thread in instance.threads.all()
-                ]
-    
-       representation = super(CommentsSerializers, self).to_representation(instance)
-       representation['created_at'] = self.format_date(instance.created_at)
-       representation['updated_at'] = self.format_date(instance.updated_at)
-       representation['comment_like_count']=instance.comment_likes.count()
-       representation['article'] = instance.article.title
-       representation['reply_count'] = instance.threads.count() 
-       representation['threads'] = threads
-       del representation['parent']
+                'id': thread.id,
+                'body': thread.body,
+                'author': ProfileListSerializer(
+                    instance=Profile.objects.get(user=thread.author)).data,
+                'created_at': self.format_date(thread.created_at),
+                'replies': thread.threads.count(),
+                'comment_like_count': thread.comment_likes.count(),
+                'updated_at': self.format_date(thread.updated_at)
+            } for thread in instance.threads.all()
+        ]
 
-       return representation
+        representation = super(CommentsSerializers, self).to_representation(instance)
+        representation['created_at'] = self.format_date(instance.created_at)
+        representation['updated_at'] = self.format_date(instance.updated_at)
+        representation['comment_like_count'] = instance.comment_likes.count()
+        representation['article'] = instance.article.title
+        representation['reply_count'] = instance.threads.count()
+        representation['threads'] = threads
+        del representation['parent']
+
+        return representation
 
     class Meta:
-       model = Comment
-       fields = (
-           'id',
-           'body',
-           'created_at',
-           'updated_at',
-           'author',
-           'article',
-           'parent',
-           'history',
-           'like_status',
-       )
-        
+        model = Comment
+        fields = (
+            'id',
+            'body',
+            'created_at',
+            'updated_at',
+            'author',
+            'article',
+            'parent',
+            'history',
+            'like_status',
+        )
+
 
 class RatingSerializer(serializers.ModelSerializer):
     rating = serializers.FloatField(
@@ -333,12 +338,12 @@ class RatingSerializer(serializers.ModelSerializer):
             MinValueValidator(
                 settings.RATING_MIN,
                 message='Rating cannot be less than ' +
-                str(settings.RATING_MIN)
+                        str(settings.RATING_MIN)
             ),
             MaxValueValidator(
                 settings.RATING_MAX,
                 message='Rating cannot be more than ' +
-                str(settings.RATING_MAX)
+                        str(settings.RATING_MAX)
             )
         ],
         error_messages={
@@ -456,14 +461,15 @@ class CommentsLikeSerializer(serializers.ModelSerializer):
         validators = [
             UniqueTogetherValidator(
                 queryset=CommentLike.objects.all(),
-                fields = ('specific_comment','commentor'),
-                message = 'You have already liked this comment.'
+                fields=('specific_comment', 'commentor'),
+                message='You have already liked this comment.'
             )
         ]
 
 
 class ReportArticlesSerializer(serializers.ModelSerializer):
     """This class adds a model serializer for reporting article"""
+
     class Meta:
         model = ReportArticles
         fields = ('article', 'user', 'report_msg')

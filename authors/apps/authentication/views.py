@@ -10,7 +10,8 @@ from social_core.exceptions import AuthAlreadyAssociated, MissingBackend
 from .renderers import UserJSONRenderer
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer, EmailSerializer, PasswordResetSerializer, SocialSignUpSerializer
+    LoginSerializer, RegistrationSerializer, UserSerializer, EmailSerializer, PasswordResetSerializer,
+    SocialSignUpSerializer
 )
 from .password_token import generate_password_token, get_password_token_data
 import os
@@ -31,7 +32,7 @@ class RegistrationAPIView(CreateAPIView):
     serializer_class = RegistrationSerializer
 
     def post(self, request):
-        user = request.data.get('user', {} )
+        user = request.data.get('user', {})
 
         # The create serializer, validate serializer, save serializer pattern
         # below is common and you will see it a lot throughout this course and
@@ -53,17 +54,18 @@ class RegistrationAPIView(CreateAPIView):
         send_mail(
             'Verify your email',
             'Please verify your account.',
-            'no-reply@authors-heaven.com',
+            'lucymaimuna@gmail.com',
             [user_email],
-            html_message = body,
+            html_message=body,
             fail_silently=False,
         )
-        content = "Thank you for registering at Authors heaven."\
-        "To start using authors heaven, go to your email and click the confirmation "\
-        "link which we haves sent to you :D"
+        content = "Thank you for registering at Authors heaven." \
+                  "To start using authors heaven, go to your email and click the confirmation " \
+                  "link which we haves sent to you :D"
         return_message = {"Message": content}
         serializer.save()
         return Response(return_message, status=status.HTTP_201_CREATED)
+
 
 class LoginAPIView(CreateAPIView):
     permission_classes = (AllowAny,)
@@ -109,11 +111,13 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class VerifyAPIView(APIView):
     """
     A class to verify user using the token sent to the email
     """
     permission_classes = (AllowAny,)
+
     def get(self, request, token):
         try:
             username = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
@@ -125,6 +129,8 @@ class VerifyAPIView(APIView):
         except:
             return Response(data={"Message": "Invalid link"},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
 class EmailSentAPIView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
@@ -136,26 +142,27 @@ class EmailSentAPIView(generics.CreateAPIView):
         token gets generated and sent to users via link.
         """
         email = request.data.get('email', {})
-        serializer = self.serializer_class(data={'email':email})
+        serializer = self.serializer_class(data={'email': email})
         serializer.is_valid(raise_exception=True)
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            message = {"message":"The email provided is not registered"}
+            message = {"message": "The email provided is not registered"}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
         token_generator = PasswordResetTokenGenerator()
         password_token = token_generator.make_token(user)
         token = generate_password_token(email, password_token)
-        message = {"message":"We've sent a password reset link to your email"}
+        message = {"message": "We've sent a password reset link to your email"}
         subject = "Password reset"
         reset_link = os.getenv('PASSWORD_RESET')
         body = render_to_string('password_reset.html', {
-            'link':reset_link+'reset_password/' + token,
+            'link': reset_link + 'reset_password/' + token,
             'name': user.username,
         })
         sender = os.getenv('EMAIL_SENDER')
         send_mail(subject, "Password Reset", sender, [email], html_message=body)
         return Response(message, status=status.HTTP_200_OK)
+
 
 class PasswordResetAPIView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
@@ -173,25 +180,25 @@ class PasswordResetAPIView(generics.CreateAPIView):
         try:
             token_data = get_password_token_data(user_token)
             if not token_data['email']:
-                return Response({"message":"invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-        except :
-            return Response({"message":"invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"message": "invalid token"}, status=status.HTTP_400_BAD_REQUEST)
         password = request.data.get('password', {})
         email = token_data['email']
         data = {
             "email": email,
             "password": password
-            }
+        }
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            message = {"message":"The Email provided is not registered"}
+            message = {"message": "The Email provided is not registered"}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
         token = token_data['token']
         token_generator = PasswordResetTokenGenerator()
         checked_token = token_generator.check_token(user, token)
         if not checked_token:
-           return Response({"message":"invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "invalid token"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(user, data=data)
         serializer.is_valid(raise_exception=True)
         user.set_password(password)
@@ -202,7 +209,7 @@ class PasswordResetAPIView(generics.CreateAPIView):
 class SocialSignUp(CreateAPIView):
     renderer_classes = (UserJSONRenderer,)
     serializer_class = SocialSignUpSerializer
-    #allow everyone to view without having to be authenticated
+    # allow everyone to view without having to be authenticated
     permission_classes = (AllowAny,)
 
     def create(self, request, *args, **kwargs):
@@ -219,24 +226,22 @@ class SocialSignUp(CreateAPIView):
         # account with it
         authed_user = request.user if not request.user.is_anonymous else None
         strategy = load_strategy(request)
-        #Get the backend that is associated with the user provider i.e google,twitter and facebook
+        # Get the backend that is associated with the user provider i.e google,twitter and facebook
         backend = load_backend(strategy=strategy, name=provider, redirect_uri=None)
 
-
         if isinstance(backend, BaseOAuth1):
-           #cater for services that use OAuth1, an example is twitter
+            # cater for services that use OAuth1, an example is twitter
             token = {
                 'oauth_token': serializer.data['access_token'],
                 'oauth_token_secret': request.data['access_token_secret'],
             }
-            
+
         elif isinstance(backend, BaseOAuth2):
-            #we just need to pass access_token for OAuth2
+            # we just need to pass access_token for OAuth2
             token = serializer.data['access_token']
-            
 
         try:
-            #check if the user exists, if exists,we just login but if not it creates a new user
+            # check if the user exists, if exists,we just login but if not it creates a new user
             user = backend.do_auth(token, user=authed_user)
         except AuthAlreadyAssociated:
             # if the user already exists,throw the following error
@@ -252,7 +257,7 @@ class SocialSignUp(CreateAPIView):
                 auth_created.extra_data['access_token'] = token
                 auth_created.save()
                 serializer.save()
-        
+
             serializer = UserSerializer(user)
             user_data = serializer.data
             user_in_db = User.objects.get(username=user_data['username'])
@@ -261,8 +266,8 @@ class SocialSignUp(CreateAPIView):
             user_in_db.save()
 
             headers = self.get_success_headers(serializer.data)
-            return Response(user_data, status=status.HTTP_201_CREATED, 
+            return Response(user_data, status=status.HTTP_201_CREATED,
                             headers=headers)
         else:
             return Response({"error": "Something went wrong with the social authentication, please try again"},
-                                        status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST)

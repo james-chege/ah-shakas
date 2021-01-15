@@ -100,7 +100,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
@@ -137,7 +136,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-
 CORS_ORIGIN_WHITELIST = os.getenv('CORS_WHITELIST', '*').split(',') + [
     '*',
     '0.0.0.0:4000',
@@ -160,8 +158,8 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'authors.apps.authentication.backends.JWTAuthentication',
-         'rest_framework.authentication.SessionAuthentication',
-         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
 }
 
@@ -190,8 +188,8 @@ SOCIAL_AUTH_FACEBOOK_SECRET = os.getenv("FB_SECRET_AUTH")
 SOCIAL_AUTH_TWITTER_KEY = os.getenv("TWITTER_KEY")
 SOCIAL_AUTH_TWITTER_SECRET = os.getenv("TWITTER_SECRET")
 
-SOCIAL_AUTH_FACEBOOK_SCOPE =['email']
-SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS={'fields':'id,email,name'}
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {'fields': 'id,email,name'}
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_SECRET")
@@ -201,17 +199,19 @@ RATING_MAX = 5
 # Activate django-heroku for Heroku
 django_heroku.settings(locals())
 
-#send grid credentials
+# send grid credentials
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'sgbackend.SendGridBackend'
+SENDGRID_API_KEY = os.getenv('EMAIL_HOST_PASSWORD')
 
 # app default domain
 DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
 
-#Words per minute(WPM)
+# Words per minute(WPM)
 WPM = 250
 PAGE_SIZE = os.getenv("PAGE_SIZE")
 MAX_PAGE_SIZE = os.getenv("MAX_PAGE_SIZE")

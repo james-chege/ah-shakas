@@ -7,6 +7,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from authors.apps.articles.models import ArticlesModel
 
+
 class TestUserNotifications(BaseTest):
     """"
     Test for users notifications
@@ -18,7 +19,7 @@ class TestUserNotifications(BaseTest):
             "username": "john",
             "email": "johndoe@gmail.com",
             "password": "1234John"
-            }
+        }
         }
 
         self.author_token = self.create_and_login_user()
@@ -84,6 +85,3 @@ class TestUserNotifications(BaseTest):
         response_body = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response_body['is_subscribed'])
-        
-
-
