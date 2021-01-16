@@ -150,7 +150,7 @@ CORS_ORIGIN_WHITELIST = os.getenv('CORS_WHITELIST', '*').split(',') + [
 # called `INSTALLED_APPS`.
 AUTH_USER_MODEL = 'authentication.User'
 
-DEFAULT_DOMAIN = os.getenv('DEFAULT_DOMAIN', 'https://ah-shakas-frontend-staging.herokuapp.com')
+DEFAULT_DOMAIN = os.getenv('DEFAULT_DOMAIN', 'https://shakas-frontend-staging.herokuapp.com')
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'authors.apps.core.exceptions.core_exception_handler',
@@ -209,7 +209,7 @@ EMAIL_BACKEND = 'sgbackend.SendGridBackend'
 SENDGRID_API_KEY = os.getenv('EMAIL_HOST_PASSWORD')
 
 # app default domain
-DEFAULT_DOMAIN = 'https://ah-shakas.herokuapp.com'
+DEFAULT_DOMAIN = 'https://shakas.herokuapp.com'
 
 # Words per minute(WPM)
 WPM = 250
